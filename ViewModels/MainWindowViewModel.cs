@@ -1164,17 +1164,17 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
                             Variable tempVar = Runtime.Lookup_Variable(tempStart.param_names[i]);
                             if (tempVar.Kind == Runtime.Variable_Kind.Value)
                             {
-                                numbers.value outVal = Runtime.getVariable(tempStart.param_names[i]);
+                                Value outVal = Runtime.getVariable(tempStart.param_names[i]);
                                 outVals.Add(outVal);
                             }
                             else if (tempVar.Kind == Runtime.Variable_Kind.One_D_Array)
                             {
-                                numbers.value[] outVal = Runtime.getValueArray(tempStart.param_names[i]);
+                                Value[] outVal = Runtime.getValueArray(tempStart.param_names[i]);
                                 outVals.Add(outVal);
                             }
                             else if (tempVar.Kind == Runtime.Variable_Kind.Two_D_Array)
                             {
-                                numbers.value[][] outVal = Runtime.get2DValueArray(tempStart.param_names[i]);
+                                Value[][] outVal = Runtime.get2DValueArray(tempStart.param_names[i]);
                                 outVals.Add(outVal);
                             }
 
@@ -1204,13 +1204,13 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
                                 }
                                 if (tempVar.Kind == Runtime.Variable_Kind.Value)
                                 {
-                                    Runtime.setVariable(textStr[k], (numbers.value)outVals[i]);
+                                    Runtime.setVariable(textStr[k], (Value)outVals[i]);
                                     spot = k + 1;
                                     break;
                                 }
                                 else if (tempVar.Kind == Runtime.Variable_Kind.One_D_Array)
                                 {
-                                    numbers.value[] arr = (numbers.value[])outVals[i];
+                                    Value[] arr = (Value[])outVals[i];
                                     for (int n = 0; n < arr.Length; n++)
                                     {
                                         Runtime.setArrayElement(textStr[k], n + 1, arr[n]);
@@ -1220,7 +1220,7 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
                                 }
                                 else if (tempVar.Kind == Runtime.Variable_Kind.Two_D_Array)
                                 {
-                                    numbers.value[][] arr = (numbers.value[][])outVals[i];
+                                    Value[][] arr = (Value[][])outVals[i];
                                     for (int r = 0; r < arr.Length; r++)
                                     {
                                         for (int c = 0; c < arr[r].Length; c++)
@@ -1456,7 +1456,7 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
                                 {
                                     myTimer.Stop();
                                 }
-                                numbers.value v;
+                                Value v;
                                 if (temp.input_is_expression)
                                 {
                                     Lexer l = new Lexer(temp.prompt);
@@ -1469,10 +1469,10 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
                                 {
                                     v = null; // this really shouldn't happen
                                 }
-                                //numbers.value answer = Runtime.getUserInput(v, temp);
+                                //Value answer = Runtime.getUserInput(v, temp);
 
                                 await Runtime.getUserInput(v, temp);
-                                numbers.value answer = temp.pans;
+                                Value answer = temp.pans;
                                 Lexer l2 = new Lexer(temp.Text);
                                 ((Input)temp.parse_tree).Execute(l2, answer);
 
@@ -1494,7 +1494,7 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
                         if (temp.parse_tree != null)
                         {
                             Output op = (Output)temp.parse_tree;
-                            numbers.value v = op.Execute(l);
+                            Value v = op.Execute(l);
                             string outputAns = numbers.Numbers.msstring_view_image(v).Replace("\"", "");
                             if (temp.new_line)
                             {

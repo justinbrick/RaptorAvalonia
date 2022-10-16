@@ -4,6 +4,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using RAPTOR_Avalonia_MVVM;
 using Avalonia;
 using RAPTOR_Avalonia_MVVM.Views;
+using numbers;
 
 namespace raptor
 {
@@ -21,7 +22,7 @@ namespace raptor
 		public parse_tree.Parseable prompt_tree;
 		public interpreter.Syntax_Result prompt_result;
 		public string assign = "";
-		public numbers.value pans = new numbers.value();
+		public Value pans = new Value();
 
 		public Parallelogram(int height, int width, String str_name, bool input)
 			: base(height, width, str_name)

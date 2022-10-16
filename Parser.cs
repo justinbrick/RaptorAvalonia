@@ -956,7 +956,7 @@ namespace RAPTOR_Avalonia_MVVM
             else
             {
                 if(Lexer.Is_Valid_Procedure(lexer.Get_Text(t.start, t.finish))){
-                    //Variable v = new Variable(lexer.Get_Text(t.start, t.finish), new numbers.value(){V=3});
+                    //Variable v = new Variable(lexer.Get_Text(t.start, t.finish), new Value(){V=3});
                     result = Parse_Tab_Proc_Call();
                 } else if(Plugins.Is_Procedure(lexer.Get_Text(t.start, t.finish))){
                     result = Parse_Plugin_Proc_Call();

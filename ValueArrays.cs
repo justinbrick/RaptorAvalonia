@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using numbers;
 
 namespace raptor
 {
     public class Runtime_Helpers
     {
-        public static numbers.value Get_Value_String(
-             numbers.value s, numbers.value value_index)
+        public static Value Get_Value_String(
+             Value s, Value value_index)
         {
             if (!numbers.Numbers.is_integer(value_index))
             {
@@ -15,13 +16,13 @@ namespace raptor
                     " is not a valid string index.");
             }
             int index = numbers.Numbers.integer_of(value_index);
-            char c = s.S[index -1];
+            char c = s.ToString()[index -1];
             return numbers.Numbers.make_character_value(c);
         }
         public static void Set_Value_String(
-            numbers.value s,
-            numbers.value value_index,
-            numbers.value v)
+            Value s,
+            Value value_index,
+            Value v)
         {
             if (!numbers.Numbers.is_integer(value_index))
             {
@@ -29,15 +30,15 @@ namespace raptor
                     " is not a valid string index.");
             }
             int index = numbers.Numbers.integer_of(value_index);
-            if (index > s.S.Length)
+            if (index > s.ToString().Length)
             {
-                s.S = s.S +
-                    new String(' ', index - s.S.Length - 1) +
+                s.o = s.ToString() +
+                    new String(' ', index - s.ToString().Length - 1) +
                     (char)numbers.Numbers.integer_of(v);
             }
             else
             {
-                s.S = s.S.Remove(index - 1, 1)
+                s.o = s.ToString().Remove(index - 1, 1)
                     .Insert(index - 1, "" +
                     (char)numbers.Numbers.integer_of(v));
             }
@@ -55,7 +56,7 @@ namespace raptor
         {
             return values.Count;
         }
-        public void Set_Value(numbers.value value_index, numbers.value v)
+        public void Set_Value(Value value_index, Value v)
         {
             if (!numbers.Numbers.is_integer(value_index))
             {
@@ -73,7 +74,7 @@ namespace raptor
             }
             try
             {
-                values[index - 1] = v._deep_clone();
+                values[index - 1] = new Value(v); // Supposed to be _deep_copy
 
             }
             catch
@@ -83,7 +84,7 @@ namespace raptor
                 throw f;
             }
         }
-        public numbers.value Get_Value(numbers.value value_index)
+        public Value Get_Value(Value value_index)
         {
             if (!numbers.Numbers.is_integer(value_index))
             {
@@ -91,7 +92,7 @@ namespace raptor
                     " is not a valid array index.");
             }
             int index = numbers.Numbers.integer_of(value_index);
-            return (numbers.value)values[index - 1];
+            return (Value)values[index - 1];
         }
         public double[] get_Doublea()
         {
@@ -99,7 +100,7 @@ namespace raptor
             double[] result = new double[row_count];
             for (int i = 0; i < row_count; i++)
             {
-                result[i] = (double)((numbers.value)(values[i])).V;
+                result[i] = (double)((Value)(values[i])).ToDouble();
             }
             return result;
         }
@@ -109,7 +110,7 @@ namespace raptor
             float[] result = new float[row_count];
             for (int i = 0; i < row_count; i++)
             {
-                result[i] = (float)((numbers.value)(values[i])).V;
+                result[i] = (float)((Value)(values[i])).ToDouble();
             }
             return result;
         }
@@ -120,7 +121,7 @@ namespace raptor
             for (int i = 0; i < row_count; i++)
             {
                 result[i] = numbers.Numbers.integer_of(
-                    (numbers.value)(values[i]));
+                    (Value)(values[i]));
             }
             return result;
         }
@@ -156,7 +157,7 @@ namespace raptor
         {
             values = new System.Collections.ArrayList();
         }
-        public void Set_Value(numbers.value value_index1, numbers.value value_index2, numbers.value v)
+        public void Set_Value(Value value_index1, Value value_index2, Value v)
         {
             if (!numbers.Numbers.is_integer(value_index1))
             {
@@ -203,7 +204,7 @@ namespace raptor
             }
             try
             {
-                ((System.Collections.ArrayList)values[index1 - 1])[index2 - 1] = v._deep_clone();
+                ((System.Collections.ArrayList)values[index1 - 1])[index2 - 1] = new Value(v); // Supposed to be _deep_clone
                 //((System.Collections.ArrayList)values[index1 - 1])[index2 - 1] = Runtime.getValueArray((Variable)v.Object);
             }
             catch
@@ -213,7 +214,7 @@ namespace raptor
                 throw f;
             }
         }
-        public numbers.value Get_Value(numbers.value value_index1, numbers.value value_index2)
+        public Value Get_Value(Value value_index1, Value value_index2)
         {
             if (!numbers.Numbers.is_integer(value_index1))
             {
@@ -227,7 +228,7 @@ namespace raptor
             }
             int index1 = numbers.Numbers.integer_of(value_index1);
             int index2 = numbers.Numbers.integer_of(value_index2);
-            return (numbers.value)((System.Collections.ArrayList)values[index1 - 1])[index2 - 1];
+            return (Value)((System.Collections.ArrayList)values[index1 - 1])[index2 - 1];
         }
         public double[][] get_Doubleaa()
         {
@@ -239,7 +240,7 @@ namespace raptor
                 result[i] = new double[col_count];
                 for (int j = 0; j < col_count; j++)
                 {
-                    result[i][j] = (double)((numbers.value)((System.Collections.ArrayList)values[i])[j]).V;
+                    result[i][j] = (double)((Value)((System.Collections.ArrayList)values[i])[j]).ToDouble();
                 }
             }
             return result;
@@ -254,7 +255,7 @@ namespace raptor
                 result[i] = new float[col_count];
                 for (int j = 0; j < col_count; j++)
                 {
-                    result[i][j] = (float)((numbers.value)((System.Collections.ArrayList)values[i])[j]).V;
+                    result[i][j] = (float)((Value)((System.Collections.ArrayList)values[i])[j]).ToDouble();
                 }
             }
             return result;
@@ -270,7 +271,7 @@ namespace raptor
                 for (int j = 0; j < col_count; j++)
                 {
                     result[i][j] = numbers.Numbers.integer_of(
-                        (numbers.value)((System.Collections.ArrayList)values[i])[j]);
+                        (Value)((System.Collections.ArrayList)values[i])[j]);
                 }
             }
             return result;

@@ -13,6 +13,7 @@ using ReactiveUI;
 using Avalonia.Threading;
 using RAPTOR_Avalonia_MVVM;
 using System.Threading.Tasks;
+using numbers;
 
 namespace raptor
 {
@@ -53,7 +54,7 @@ namespace raptor
 				}
         	}
 			public Runtime.Variable_Kind Kind;
-			public numbers.value Variable_Value;
+			public Value Variable_Value;
 
 			public ObservableCollection<Arr> values { get; set; } = new ObservableCollection<Arr>();
 			private bool isConstant = false;
@@ -74,7 +75,7 @@ namespace raptor
 			}
 
             // create a value variable
-			public Variable(string name, numbers.value Value) : base() 
+			public Variable(string name, Value Value) : base() 
 			{
 				Var_Name = name;
 				Kind = Runtime.Variable_Kind.Value;
@@ -114,7 +115,7 @@ namespace raptor
                 }
                 else
                 {
-                    numbers.value val;
+                    Value val;
                     if (f.InitialValue != null && f.InitialValue != "")
                     {
                         if (f.InitialValue.Contains("\""))
@@ -178,7 +179,7 @@ namespace raptor
 
             
             // create a 1D array variable
-			public Variable(string name, int index, numbers.value Value) : base() 
+			public Variable(string name, int index, Value Value) : base() 
 			{
 				ObservableCollection<Arr> temp = new ObservableCollection<Arr>();
 
@@ -219,7 +220,7 @@ namespace raptor
 			}
 
 			public Variable(string name, int index1, int index2,
-				numbers.value Value) : base() 
+				Value Value) : base() 
 			{
 				if (index1*index2 > max_array_size)
 				{
@@ -341,7 +342,7 @@ namespace raptor
             {
                 this.isConstant = true;
             }
-			public void set_value(numbers.value v)
+			public void set_value(Value v)
 			{
                 if (!this.isConstant)
                 {
@@ -375,7 +376,7 @@ namespace raptor
 				}*/
 				
 				int count = numbers.Numbers.integer_of(this.values[0].value);
-				bool str = this.values[1].value.Kind == numbers.Value_Kind.String_Kind;
+				bool str = this.values[1].value.o is string;
 				if(index > count){
 					this.values.RemoveAt(0);
 					this.values.Insert(0, new Arr(){name="Size",value=numbers.Numbers.make_value__3(index)});
@@ -401,7 +402,7 @@ namespace raptor
                 }*/
                 return null;
             }
-            public numbers.value get_field_1d(string name, int index)
+            public Value get_field_1d(string name, int index)
             {
                 Variable v = this.get_field_variable(name);
                 if (v.Kind != Runtime.Variable_Kind.One_D_Array)
@@ -410,7 +411,7 @@ namespace raptor
                 }
                 return v.getArrayElement(index);
             }
-            public numbers.value get_field_2d(string name, int index, int index2)
+            public Value get_field_2d(string name, int index, int index2)
             {
                 Variable v = this.get_field_variable(name);
                 if (v.Kind != Runtime.Variable_Kind.Two_D_Array)
@@ -419,7 +420,7 @@ namespace raptor
                 }
                 return v.get2DArrayElement(index,index2);
             }
-            public numbers.value get_field(string name)
+            public Value get_field(string name)
             {
                 /*foreach (Avalonia.Controls.TreeViewItem n in this.Nodes)
                 {
@@ -438,7 +439,7 @@ namespace raptor
                 }*/
                 throw new System.Exception("object doesn't have field: " + name);
             }
-            public void set_field(string name, numbers.value f)
+            public void set_field(string name, Value f)
             {
                 Variable field;
                 if (this.Kind != Runtime.Variable_Kind.Heap_Object)
@@ -455,7 +456,7 @@ namespace raptor
                 Runtime.Add_To_Updated(this);
                 Runtime.Add_To_Updated(field);
             }
-			public void set_1D_value(int index, numbers.value f)
+			public void set_1D_value(int index, Value f)
 			{
 
 				if (index>max_array_size)
@@ -472,11 +473,11 @@ namespace raptor
                     }
                     else if (numbers.Numbers.is_character(f))
                     {
-                        c = (int)f.C;
+                        c = (int)f.ToCharacter();
                     }
                     else if (numbers.Numbers.is_string(f) && numbers.Numbers.length_of(f) == 1)
                     {
-                        c = (int)f.S[0];
+                        c = (int)f.ToString()[0];
                     }
                     else
                     {
@@ -490,12 +491,12 @@ namespace raptor
 					string new_string;
 					if (index > numbers.Numbers.length_of(this.Variable_Value))
 					{
-						new_string = this.Variable_Value.S +
+						new_string = this.Variable_Value.ToString() +
 							new String(' ',index-numbers.Numbers.length_of(this.Variable_Value)-1) + (char) c;
 					}
 					else
 					{
-						new_string = this.Variable_Value.S.Remove(index-1,1)
+						new_string = this.Variable_Value.ToString().Remove(index-1,1)
 							.Insert(index-1,"" + (char) c);
 					}
 					this.Variable_Value = numbers.Numbers.make_string_value(new_string);
@@ -521,7 +522,7 @@ namespace raptor
 				}
 			}
 
-			public void set_2D_value(int index1, int index2, numbers.value Value)
+			public void set_2D_value(int index1, int index2, Value Value)
 			{
 				if (index1*index2 > max_array_size)
 				{
@@ -532,7 +533,7 @@ namespace raptor
 				int count = numbers.Numbers.integer_of(this.values[0].value);
 				ObservableCollection<Arr> val1 = this.values;
 				int curCols = numbers.Numbers.integer_of(val1[1].values[0].value);
-				bool str = Value.Kind == numbers.Value_Kind.String_Kind;
+				bool str = Value.o is string;
 				if(index1 > count){
 					// handle adding more rows
 					val1.RemoveAt(0);
@@ -586,7 +587,7 @@ namespace raptor
 					}
 				}
 			}
-			public numbers.value get2DArrayElement(int index1, int index2)
+			public Value get2DArrayElement(int index1, int index2)
 			{
 				//return numbers.Numbers.Null_Ptr;
 				if (this.Kind==Runtime.Variable_Kind.Two_D_Array) 
@@ -620,7 +621,7 @@ namespace raptor
 						" is not a two-dimensional array");
 				}
 			}
-			public numbers.value getArrayElement(int index)
+			public Value getArrayElement(int index)
 			{
 				//return numbers.Numbers.Null_Ptr;
 				if (this.Kind==Runtime.Variable_Kind.One_D_Array) 
@@ -642,7 +643,7 @@ namespace raptor
 					if (numbers.Numbers.length_of (this.Variable_Value) >=
 						index && index>=1)
 					{
-						return numbers.Numbers.make_character_value (this.Variable_Value.S[index-1]);
+						return numbers.Numbers.make_character_value (this.Variable_Value.ToString()[index-1]);
 					}
 					else
 					{
@@ -669,7 +670,7 @@ namespace raptor
 				else if (this.Kind==Runtime.Variable_Kind.Value && 
 						numbers.Numbers.is_string(this.Variable_Value))
 				{
-					return (this.Variable_Value.S.Length);
+					return (this.Variable_Value.ToString().Length);
 				}
 				else
 				{
@@ -751,9 +752,9 @@ namespace raptor
 
 	public class Arr : ReactiveObject {
 		private string Name;
-		private numbers.value Value;
+		private Value Value;
 
-		public numbers.value value{
+		public Value value{
 			get{
 				return Value;
 			}
@@ -789,13 +790,13 @@ namespace raptor
 				if(values.Count > 0){
 					return name + "[]";
 				} else{
-					if(value.Kind == numbers.Value_Kind.Number_Kind){
-						return name + ": " + value.V.ToString();
-					}else if(value.Kind == numbers.Value_Kind.Character_Kind){
-						return name + ": '" + value.C.ToString() + "'";
+					if(value.IsNumber()){
+						return name + ": " + value.o.ToString();
+					}else if(value.IsCharacter()){
+						return name + ": '" + value.o.ToString() + "'";
 					} 
 					else{
-						return name + ": " + '"' + value.S + '"';
+						return name + ": " + '"' + value.ToString() + '"';
 					}
 				}
 			}
@@ -804,8 +805,8 @@ namespace raptor
 
 	public class Arr2 : ReactiveObject{
 		private string Name;
-		private numbers.value Value;
-		public numbers.value value{
+		private Value Value;
+		public Value value{
 			get{
 				return Value;
 			}
@@ -837,13 +838,13 @@ namespace raptor
         	}
 		public string displayStr {
 			get {
-				if(value.Kind == numbers.Value_Kind.Number_Kind){
-					return name + ": " + value.V.ToString();
-				} else if(value.Kind == numbers.Value_Kind.Character_Kind){
-					return name + ": '" + value.C.ToString() + "'";
+				if(value.IsNumber()){
+					return name + ": " + value.ToString();
+				} else if(value.IsCharacter()){
+					return name + ": '" + value.ToString() + "'";
 				} 
 				else{
-					return name + ": " + '"' + value.S + '"';
+					return name + ": " + '"' + value.ToString() + '"';
 				}
 			}
 		}
@@ -898,7 +899,7 @@ namespace raptor
         public static bool isObjectOriented() {
             return Component.Current_Mode == Mode.Expert;
         }
-        public static numbers.value? method_return_value = null;
+        public static Value? method_return_value = null;
 
 		/*private static void Clear_Updated_Delegate()
 		{
@@ -1108,7 +1109,7 @@ namespace raptor
 			}
 		}
 
-		public async static Task getUserInput(numbers.value prompt, Parallelogram component)
+		public async static Task getUserInput(Value prompt, Parallelogram component)
 		{
 			// I would love to combine this with the below method, but tasking.... :-(
 			if (!raptor_files.input_redirected())
@@ -1121,7 +1122,7 @@ namespace raptor
 				component.pans = numbers.Numbers.make_correct_number_value_type(raptor_files.read());
             }
 		}
-		public static numbers.value getUserIn(string prompt, bool force_number)
+		public static Value getUserIn(string prompt, bool force_number)
 		{
 			if (!raptor_files.input_redirected())
 			{
@@ -1129,7 +1130,7 @@ namespace raptor
 				Parallelogram temp = (Parallelogram)Component.currentTempComponent;
 				Dispatcher.UIThread.InvokeAsync(async () =>
 				{
-					UserInputDialog uid = new UserInputDialog(temp, new numbers.value() { S = prompt, Kind = numbers.Value_Kind.String_Kind }, true);
+					UserInputDialog uid = new UserInputDialog(temp, new Value(prompt), true);
 					await uid.ShowDialog(MainWindow.topWindow);
 				}).Wait(-1);
 				return temp.pans;
@@ -1138,7 +1139,7 @@ namespace raptor
 			{
 				return numbers.Numbers.make_correct_number_value_type(raptor_files.read());
 			}
-			//return getUserInput(new numbers.value() { S = prompt, Kind = numbers.Value_Kind.String_Kind }, temp);
+			//return getUserInput(new Value() { S = prompt, Kind = numbers.Value_Kind.String_Kind }, temp);
 		}
 
 // Container holding all variables and their values
@@ -1190,7 +1191,7 @@ public static Avalonia.Controls.Window parent;
 			}
 			for(int i = spot; i < vars.Count; i++){
 				if(vars[i].Text.Contains("--")){
-					//Variable jdhfg = new Variable(vars[i].Text.Replace("--","") + " found!" ,new numbers.value(){V=666});
+					//Variable jdhfg = new Variable(vars[i].Text.Replace("--","") + " found!" ,new Value(){V=666});
 					break;
 				}else{
 					if(vars[i].Kind==Variable_Kind.Value){
@@ -1220,7 +1221,7 @@ public static Avalonia.Controls.Window parent;
 			}
 			for(int i = spot; i < vars.Count; i++){
 				if(vars[i].Text.Contains("--")){
-					//Variable jdhfg = new Variable(vars[i].Text.Replace("--","") + " found!" ,new numbers.value(){V=666});
+					//Variable jdhfg = new Variable(vars[i].Text.Replace("--","") + " found!" ,new Value(){V=666});
 					break;
 				}else{
 					if(vars[i].Text.IndexOf(":") != -1 && s.IndexOf(":") != -1){
@@ -1239,7 +1240,7 @@ public static Avalonia.Controls.Window parent;
 		// as a double or return the smallest integer if the
 		// variable does not currently exist.
 		//****************************************************
-		public static numbers.value getVariable(string s)
+		public static Value getVariable(string s)
 		{
 			Variable? temp=Runtime.Lookup_Variable(s);
 
@@ -1281,15 +1282,15 @@ public static Avalonia.Controls.Window parent;
             
 		}
 		/*
-		private delegate numbers.value getVariable_Delegate_Type(string s);
+		private delegate Value getVariable_Delegate_Type(string s);
 		private static getVariable_Delegate_Type getVariable_delegate=
 			new getVariable_Delegate_Type(getVariable_Delegate);
-		public static numbers.value getVariable(string s)
+		public static Value getVariable(string s)
 		{
 			Object[] parameters = new Object[1];
 			parameters[0]=s;
 			return null;
-			//return (numbers.value) watchBox.Invoke(getVariable_delegate,parameters);
+			//return (Value) watchBox.Invoke(getVariable_delegate,parameters);
 		}
 
         public static Object getVariableContext(string s)
@@ -1297,7 +1298,7 @@ public static Avalonia.Controls.Window parent;
             Object[] parameters = new Object[1];
             parameters[0] = s;
 			return null;
-            //return numbers.Numbers.object_of((numbers.value)watchBox.Invoke(getVariable_delegate, parameters));
+            //return numbers.Numbers.object_of((Value)watchBox.Invoke(getVariable_delegate, parameters));
         }
 		*/
 		//****************************************************
@@ -1397,7 +1398,7 @@ public static Avalonia.Controls.Window parent;
 		// or adds the variable and its value to the list if
 		// it does not currently exist.
 		//****************************************************
-		public static void setVariable(string s, numbers.value f)
+		public static void setVariable(string s, Value f)
 		{
 			Variable temp=Runtime.Lookup_Variable(s);
 
@@ -1442,10 +1443,10 @@ public static Avalonia.Controls.Window parent;
 		}
 		/*
 		private delegate void setVariable_Delegate_Type(string s,
-			numbers.value f);
+			Value f);
 		private static setVariable_Delegate_Type setVariable_delegate=
 			new setVariable_Delegate_Type(setVariable_Delegate);
-		public static void setVariable(string s, numbers.value f)
+		public static void setVariable(string s, Value f)
 		{
 			Object[] parameters = new Object[2];
 			parameters[0]=s;
@@ -1457,10 +1458,10 @@ public static Avalonia.Controls.Window parent;
 			}
 		}
 		*/
-        internal static numbers.value[] getValueArray(Variable temp)
+        internal static Value[] getValueArray(Variable temp)
         {
 			int count = numbers.Numbers.integer_of(temp.values[0].value);
-            numbers.value[] result = new numbers.value[count];
+            Value[] result = new Value[count];
             for (int i = 0; i < count; i++)
             {
                 result[i] = temp.getArrayElement(i + 1);
@@ -1468,7 +1469,7 @@ public static Avalonia.Controls.Window parent;
             return result;
         }
 
-        public static numbers.value[] getValueArray(string s)
+        public static Value[] getValueArray(string s)
         {
             Variable temp = Runtime.Lookup_Variable(s);
 
@@ -1487,7 +1488,7 @@ public static Avalonia.Controls.Window parent;
             throw new Exception(s + " not found.");
         }
 
-		public static numbers.value[] getArray(string s)
+		public static Value[] getArray(string s)
 		{
 			//return null;
 			Variable temp=Runtime.Lookup_Variable(s);
@@ -1498,7 +1499,7 @@ public static Avalonia.Controls.Window parent;
 				if (temp.Kind==Variable_Kind.One_D_Array) 
 				{
 					int count = numbers.Numbers.integer_of (temp.values[0].value);
-					numbers.value[] result = new numbers.value[count];
+					Value[] result = new Value[count];
 					for (int i=0; i<count; i++) 
 					{
 						result[i] = temp.getArrayElement(i+1);
@@ -1528,7 +1529,7 @@ public static Avalonia.Controls.Window parent;
 					double[] result = new double[count];
 					for (int i = 0; i < count; i++)
 					{
-						result[i] = (double)temp.getArrayElement(i + 1).V;
+						result[i] = temp.getArrayElement(i + 1).ToDouble();
 					}
 					return result;
 				}
@@ -1608,7 +1609,7 @@ public static Avalonia.Controls.Window parent;
 		// Returns the current value of an element in an array
 		// as a double.
 		//****************************************************
-		public static numbers.value getArrayElement(string s, int index)
+		public static Value getArrayElement(string s, int index)
 		{
 			if (index <= 0) 
 			{
@@ -1653,7 +1654,7 @@ public static Avalonia.Controls.Window parent;
 			}
 			throw new Exception(s + " not found.");
 		}
-        public static numbers.value[][] get2DValueArray(string s)
+        public static Value[][] get2DValueArray(string s)
         {
             Variable temp = Runtime.Lookup_Variable(s);
 
@@ -1672,14 +1673,14 @@ public static Avalonia.Controls.Window parent;
             throw new Exception(s + " not found.");
         }
 
-        internal static numbers.value[][] get2DValueArray(Variable temp)
+        internal static Value[][] get2DValueArray(Variable temp)
         {
             int row_count = temp.row_count();
             int col_count = temp.col_count();
-            numbers.value[][] result = new numbers.value[row_count][];
+            Value[][] result = new Value[row_count][];
             for (int i = 0; i < row_count; i++)
             {
-                result[i] = new numbers.value[col_count];
+                result[i] = new Value[col_count];
                 for (int j = 0; j < col_count; j++)
                 {
                     result[i][j] = temp.get2DArrayElement(i + 1, j + 1);
@@ -1721,7 +1722,7 @@ public static Avalonia.Controls.Window parent;
 		// Returns the current value of an element in an array
 		// as a double.
 		//****************************************************
-		public static numbers.value get2DArrayElement(string s, 
+		public static Value get2DArrayElement(string s, 
 			int index1, int index2)
 		{
 			if (index1 <= 0) 
@@ -1763,7 +1764,7 @@ public static Avalonia.Controls.Window parent;
 		// or adds the variable and its value to the array if
 		// it does not currently exist.
 		//****************************************************
-		public static void setArrayElement(string s, int index, numbers.value f)
+		public static void setArrayElement(string s, int index, Value f)
 		{
 			if (index <= 0) 
 			{
@@ -1803,12 +1804,12 @@ public static Avalonia.Controls.Window parent;
 		}
 		/*
 		private delegate void setArrayElement_Delegate_Type(string s,
-			int index, numbers.value f);
+			int index, Value f);
 		private static setArrayElement_Delegate_Type 
 			setArrayElement_delegate=
 			new setArrayElement_Delegate_Type(setArrayElement_Delegate);
 		public static void setArrayElement(string s, 
-			int index, numbers.value f)
+			int index, Value f)
 		{
 			Object[] parameters = new Object[3];
 			parameters[0]=s;
@@ -1825,7 +1826,7 @@ public static Avalonia.Controls.Window parent;
 		// it does not currently exist.
 		//****************************************************
 		public static void set2DArrayElement(string s, int index1, 
-			int index2, numbers.value f)
+			int index2, Value f)
 		{
 			if (index1 <= 0) 
 			{
@@ -1878,12 +1879,12 @@ public static Avalonia.Controls.Window parent;
 		}
 
 /*		private delegate void set2DArrayElement_Delegate_Type(string s,
-			int index1, int index2, numbers.value f);
+			int index1, int index2, Value f);
 		private static set2DArrayElement_Delegate_Type 
 			set2DArrayElement_delegate=
 			new set2DArrayElement_Delegate_Type(set2DArrayElement_Delegate);
 		public static void set2DArrayElement(string s, 
-			int index1, int index2, numbers.value f)
+			int index1, int index2, Value f)
 		{
 			Object[] parameters = new Object[4];
 			parameters[0]=s;
@@ -2246,7 +2247,7 @@ public static Avalonia.Controls.Window parent;
                 watchBox.Invoke(Runtime.add_to_classes_delegate, args);
             }
         }
-        public static numbers.value createObject(string class_name)
+        public static Value createObject(string class_name)
         {
             object[] args = new Object[1];
             Variable v = new Variable("object_ref",class_name);

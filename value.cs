@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using Avalonia.OpenGL.Surfaces;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using raptor;
+using ReactiveUI;
 
 namespace numbers
 {
@@ -12,124 +17,309 @@ namespace numbers
         Number_Kind, String_Kind, Character_Kind, Object_Kind,
         Ref_1D, Ref_2D
     };
+
     public class value
     {
-        public double V;
-        public string? S;
-        public char C;
-        public object? Object;
-        public Value_Kind Kind;
-
-        public static bool operator ==(value first, value second){
-            if(first.Kind != second.Kind){
-                return false;
-            }
-            switch(first.Kind){
-                case Value_Kind.Number_Kind:
-                    return first.V == second.V;
-                case Value_Kind.String_Kind:
-                    return first.S == second.S;
-                case Value_Kind.Character_Kind:
-                    return first.C == second.C;
-            }
-            return false;
-        }
-
-        public static bool operator !=(value first, value second){
-            if(first.Kind != second.Kind){
-                return false;
-            }
-            switch(first.Kind){
-                case Value_Kind.Number_Kind:
-                    return first.V != second.V;
-                case Value_Kind.String_Kind:
-                    return first.S != second.S;
-                case Value_Kind.Character_Kind:
-                    return first.C != second.C;
-            }
-            return false;
-        }
-
-        public static bool operator >(value first, value second){
-            if(first.Kind != second.Kind){
-                return false;
-            }
-            switch(first.Kind){
-                case Value_Kind.Number_Kind:
-                    return first.V > second.V;
-                case Value_Kind.String_Kind:
-                    return first.S.CompareTo(second.S) > 0;
-                case Value_Kind.Character_Kind:
-                    return first.C > second.C;
-            }
-            return false;
-        }
-
-        public static bool operator <(value first, value second){
-            if(first.Kind != second.Kind){
-                return false;
-            }
-            switch(first.Kind){
-                case Value_Kind.Number_Kind:
-                    return first.V < second.V;
-                case Value_Kind.String_Kind:
-                    return first.S.CompareTo(second.S) < 0;
-                case Value_Kind.Character_Kind:
-                    return first.C < second.C;
-            }
-            return false;
-        }
-
-        public static bool operator >=(value first, value second){
-            if(first.Kind != second.Kind){
-                return false;
-            }
-            switch(first.Kind){
-                case Value_Kind.Number_Kind:
-                    return first.V >= second.V;
-                case Value_Kind.String_Kind:
-                    return first.S.CompareTo(second.S) >= 0;
-                case Value_Kind.Character_Kind:
-                    return first.C >= second.C;
-            }
-            return false;
-        }
-
-        public static bool operator <=(value first, value second){
-            if(first.Kind != second.Kind){
-                return false;
-            }
-            switch(first.Kind){
-                case Value_Kind.Number_Kind:
-                    return first.V <= second.V;
-                case Value_Kind.String_Kind:
-                    return first.S.CompareTo(second.S) <= 0;
-                case Value_Kind.Character_Kind:
-                    return first.C <= second.C;
-            }
-            return false;
-        }
-
-
-        public numbers.value _deep_clone()
-        {
-            switch (Kind)
-            {
-                case Value_Kind.Number_Kind:
-                    return new numbers.value() {Kind = Value_Kind.Number_Kind, V = this.V };
-                case Value_Kind.String_Kind:
-                    return new numbers.value() { Kind = Value_Kind.String_Kind, S = this.S };
-                case Value_Kind.Character_Kind:
-                    return new numbers.value() { Kind = Value_Kind.Character_Kind, C = this.C };
-                case Value_Kind.Ref_1D:
-                    throw new NotImplementedException();
-                case Value_Kind.Ref_2D:
-                    throw new NotImplementedException();
-            }
-            throw new NotImplementedException();
-        }
 
     }
+
+    public class Value
+    {
+        public object? o;
+
+        public Value(Value copy)
+        {
+            switch (copy.o)
+            {
+                case string s:
+                    o = new string(s);
+                    break;
+                case double d:
+                    o = d;
+                    break;
+                case char c:
+                    o = c;
+                    break;
+                default:
+                    o = copy.o;
+                    break;
+            }
+        }
+
+        public Value()
+        {
+            o = null; 
+        }
+
+        public Value(object? instance)
+        {
+            switch (instance)
+            {
+                case int i:
+                    o = (double)i;
+                    break;
+                case long l:
+                    o = (double)l;
+                    break;
+                case float f:
+                    o = (double)f;
+                    break;
+                case bool b:
+                    o = b ? 1.0 : 0.0;
+                    break;
+                default:
+                    o = instance;
+                    break;
+            }
+        }
+
+        // Conversion Functions
+        public object? ToObject()
+        {
+            return o;
+        }
+
+        public int ToInteger()
+        {
+            switch (o)
+            {
+                case char c:
+                    return (int)c;
+                case double d:
+                    return (int)d;
+                default:
+                    return 0;
+            }
+        }
+
+        public char ToCharacter()
+        {
+            if (o is char c) return c;
+            return ' ';
+        }
+
+        override public string ToString()
+        {
+            return o?.ToString() ?? "";
+        }
+
+        public double ToDouble()
+        {
+            switch (o)
+            {
+                case char c:
+                    return (double)c;
+                case double d:
+                    return d;
+                default:
+                    return 0;
+            }
+        }
+
+        public bool IsNumber()
+        {
+            return o is double;
+        }
+
+        public bool IsCharacter()
+        {
+            return o is char;
+        }
+
+        public bool IsString()
+        {
+            return o is string;
+        }
+
+        public bool IsInteger()
+        {
+            const double epsilon = 0.00001;
+            if (o is double d)
+            {
+               return ((int)d-d) < epsilon;
+            }
+            return false;
+        }
+
+        // Comparison Operators
+        public static bool operator ==(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) return first.o == second.o;
+            if (first.o.GetType() != second.o.GetType()) return false;
+
+            switch (first.o)
+            {
+                case double firstValue:
+                    return firstValue == (double)second.o;
+                case string firstValue:
+                    return firstValue == (string)second.o;
+                case char firstValue:
+                    return firstValue == (char)second.o;
+            }
+            return false;
+        }
+        public static bool operator !=(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) return first.o != second.o;
+            if (first.o.GetType() != second.o.GetType()) return true;
+
+            switch (first.o)
+            {
+                case double firstValue:
+                    return firstValue != (double)second.o;
+                case string firstValue:
+                    return firstValue != (string)second.o;
+                case char firstValue:
+                    return firstValue != (char)second.o;
+            }
+            return false;
+        }
+
+        public static bool operator >(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) return false;
+            if (first.o.GetType() != second.o.GetType()) return false;
+
+            switch (first.o)
+            {
+                case double firstValue:
+                    return firstValue > (double)second.o;
+                case string firstValue:
+                    return firstValue.CompareTo((string)second.o) > 0;
+                case char firstValue:
+                    return firstValue > (char)second.o;
+            }
+            return false;
+        }
+
+        public static bool operator <(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) return false;
+            if (first.o.GetType() != second.o.GetType()) return false;
+
+            switch (first.o)
+            {
+                case double firstValue:
+                    return firstValue < (double)second.o;
+                case string firstValue:
+                    return firstValue.CompareTo((string)second.o) < 0;
+                case char firstValue:
+                    return firstValue < (char)second.o;
+            }
+            return false;
+        }
+
+        public static bool operator >=(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) return false;
+            if (first.o.GetType() != second.o.GetType()) return false;
+
+            switch (first.o)
+            {
+                case double firstValue:
+                    return firstValue >= (double)second.o;
+                case string firstValue:
+                    return firstValue.CompareTo((string)second.o) >= 0;
+                case char firstValue:
+                    return firstValue >= (char)second.o;
+            }
+            return false;
+        }
+
+        public static bool operator <=(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) return false;
+            if (first.o.GetType() != second.o.GetType()) return false;
+
+            switch (first.o)
+            {
+                case double firstValue:
+                    return firstValue <= (double)second.o;
+                case string firstValue:
+                    return firstValue.CompareTo((string)second.o) <= 0;
+                case char firstValue:
+                    return firstValue <= (char)second.o;
+            }
+            return false;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return (obj is Value v) && v == this;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        // Arithmetic Operators
+
+        public static Value operator+(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) throw new Exception("Cannot add null value");
+            switch (first.o)
+            {
+                case double d:
+                    if (second.o is double) return new Value(d + (double)second.o);
+                    if (second.o is string) return new Value(d + ((string)second.o).Replace("\"", ""));
+                    if (second.o is char) return new Value((char)(d+(char)second.o));
+                    break;
+                case char c:
+                    if (second.o is double) return new Value((char)(c + (int)second.o));
+                    if (second.o is string) return new Value(c + (string)second.o);
+                    if (second.o is char) return new Value(c + (char)second.o);
+                    break;
+                case string s:
+                    s = s.Replace("\"", "");
+                    if (second.o is double) return new Value(s + (double)second.o);
+                    if (second.o is string) return new Value(s + ((string)second.o).Replace("\"", ""));
+                    if (second.o is char) return new Value(s + (char)second.o);
+                    break;
+                default:
+                    break;
+            }
+            throw new Exception($"Cannot add values of type {first.o.GetType().Name} and {second.o.GetType().Name}");
+        }
+
+        public static Value operator-(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) throw new Exception("Cannot add null value");
+            if ((first.o is double || first.o is char) && (second.o is double || second.o is char)) return new Value((double)first.o + (double)second.o);
+            throw new Exception($"Cannot add values of type {first.o.GetType().Name} and {second.o.GetType().Name}");
+        }
+
+        public static Value operator*(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) throw new Exception("Cannot multiply null value");
+            if (first.o is double && second.o is double) return new Value((double)first.o * (double)second.o);
+            throw new Exception($"Cannot multiply values of type {first.o.GetType().Name} and {second.o.GetType().Name}");
+        }
+
+        public static Value operator /(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) throw new Exception("Cannot divide null value");
+            if (first.o is double && second.o is double) return new Value((double)first.o / (double)second.o);
+            throw new Exception($"Cannot divide values of type {first.o.GetType().Name} and {second.o.GetType().Name}");
+        }
+
+        public static Value operator %(Value first, Value second)
+        {
+            if (first.o is null || second.o is null) throw new Exception("Cannot divide null value");
+            if (first.o is double && second.o is double) return new Value((double)first.o % (double)second.o);
+            throw new Exception($"Cannot modulo values of type {first.o.GetType().Name} and {second.o.GetType().Name}");
+        }
+
+        // Non-overloads
+
+        public Value Pow(Value exp)
+        {
+            if (this.o is null || exp.o is null) throw new Exception("Cannot use null exponent!");
+            if (this.o is double && exp.o is double) return new Value(Math.Pow((double)this.o, (double)exp.o));
+            throw new Exception($"Cannot exponent values of type {this.o.GetType().Name} and {exp.o.GetType().Name}");
+        }
+    }
+
     public class Numbers
     {
         private const int DEFAULT_PRECISION = 4;
@@ -147,841 +337,477 @@ namespace numbers
                 Precision = i;
             }
         }
-        public static value Zero = new value { V = 0.0, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
-        public static value One = new value { V = 1.0, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
-        public static value Pi = new value { V = Math.PI, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
-        public static value E = new value { V = Math.E, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
-        public static value Two_Pi = new value { V = 2.0*Math.PI, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
-        public static value Null_Ptr = new value { V = 0.0, C = ' ', S = null, Kind = Value_Kind.Object_Kind, Object = null };
-        public static object? object_of(value v)
-        {
-            return v.Object;
-        }
-        public static int integer_of(value v)
-        {
-            if(v.Kind == Value_Kind.Number_Kind)
-            {
-                return (int)(v.V);
-            }
-            else
-            {
-                return (int)(v.C);
-            }
-            
-        }
-        public static int character_of(value v)
-        {
-            return (char)(v.C);
-        }
-        public static string string_of(value v)
-        {
-            return (v.S);
-        }
-        public static double long_float_of(value v)
-        {
-            return (v.V);
-        }
-        public static bool is_number(value v)
-        {
-            return v.Kind == Value_Kind.Number_Kind;
-        }
-        public static bool is_string(value v)
-        {
-            return v.Kind == Value_Kind.String_Kind;
-        }
-        public static bool is_integer (value v)
-        {
-            double Close_Enough = 0.000000001;
-            if (v.Kind==Value_Kind.Number_Kind)
-            {
-                return Math.Abs(((int) v.V)-v.V)<Close_Enough;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public static string number_string(value v)
-        {
-            if (is_integer(v) && !Precision_Set)
-            {
-                if(v.V < 0)
-                {
-                    return Convert.ToString(((int)(v.V - 0.1)));
-                }
-                return Convert.ToString(((int) (v.V+0.1)));
-            }
-            else
-            {
-                return Convert.ToString(v.V);
-            }
-        }
-        public static value make_2d_ref(object o)
-        {
-            return new value { V = 0.0, C = ' ', S = null, Kind = Value_Kind.Ref_2D, Object = o };
-        }
-        public static value make_1d_ref(object o)
-        {
-            return new value { V = 0.0, C = ' ', S = null, Kind = Value_Kind.Ref_1D, Object = o };
-        }
-        public static string object_image(value v)
-        {
-            return "[" + v.Object.GetHashCode() + "]";
-        }
-        public static string msstring_view_image(value v)
-        {
-            switch (v.Kind)
-            {
-                case Value_Kind.Number_Kind:
-                    return number_string(v);
-                case Value_Kind.String_Kind:
-                    return "\"" + v.S + "\"";
-                case Value_Kind.Character_Kind:
-                    return "'" + v.C + "'";
-                case Value_Kind.Object_Kind:
-                case Value_Kind.Ref_1D:
-                case Value_Kind.Ref_2D:
-                    return object_image(v);
-                default:
-                    throw new Exception("bad kind");
-            }
-        }
-        public static string msstring_console_view_image(value v)
-        {
-            switch (v.Kind)
-            {
-                case Value_Kind.Number_Kind:
-                    return number_string(v);
-                case Value_Kind.String_Kind:
-                    return v.S;
-                case Value_Kind.Character_Kind:
-                    return ""+v.C;
-                case Value_Kind.Object_Kind:
-                case Value_Kind.Ref_1D:
-                case Value_Kind.Ref_2D:
-                    return object_image(v);
-                default:
-                    throw new Exception("bad kind");
-            }
-        }
-        public static value make_correct_number_value_type(string s)
-        {
-            try
-            {
-                if (s.Contains("."))
-                {
-                    throw new Exception();
-                }
-                numbers.value ans = new numbers.value();
-                ans.V = Convert.ToInt32(s);
-                ans.Kind = Value_Kind.Number_Kind;
-                return ans;
-            }
-            catch(Exception e){}
+        public static Value Zero = new Value(0);
+        public static Value One = new Value(1);
+        public static Value Pi = new Value(Math.PI);
+        public static Value E = new Value(Math.E);
+        public static Value Two_Pi = new Value(Math.PI * 2);
+        public static Value Null_Ptr = new Value();
 
-            try
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static object? object_of(Value v)
+        {
+            return v.ToObject();
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static int integer_of(Value v)
+        {
+            return v.ToInteger();
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static int character_of(Value v)
+        {
+            return v.ToCharacter();
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static string string_of(Value v)
+        {
+            return v.ToString();
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static double long_float_of(Value v)
+        {
+            return v.ToDouble();
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static bool is_number(Value v)
+        {
+            return v.IsNumber();
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static bool is_string(Value v)
+        {
+            return v.IsString();
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static bool is_integer (Value v)
+        {
+            return v.IsInteger();
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static string number_string(Value v)
+        {
+            string format = Precision_Set ? "{0:" + Precision + "f}" : "{0:f}"; // Either a formatted string with precision, or a formatted string with no precision.
+            var d = v.ToDouble();
+            return String.Format(format, d);            
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static Value make_2d_ref(object o)
+        {
+            return new Value(o);
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static Value make_1d_ref(object o)
+        {
+            return new Value(o);
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static string object_image(Value v)
+        {
+            return "[" + (v.o?.GetHashCode() ?? 0) + "]";
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static string msstring_view_image(Value v)
+        {
+            switch (v.o)
             {
-                numbers.value ans = new numbers.value();
-                ans.V = Convert.ToDouble(s);
-                ans.Kind = Value_Kind.Number_Kind;
-                return ans;
+                case double d:
+                    return $"\"{d}\"";
+                case char c:
+                    return $"'{c}'";
+                default:
+                    return v.ToString();
             }
-            catch (Exception e) { }
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static string msstring_console_view_image(Value v)
+        {
 
+            switch (v.o)
+            {
+                case double d:
+                    return number_string(v);
+                default:
+                    return v.ToString();
+            }
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static Value make_correct_number_value_type(string s)
+        {
             try
             {
-                numbers.value ans = new numbers.value();
-                ans.S = s;
-                ans.Kind = Value_Kind.String_Kind;
-                return ans;
+                if (s.Contains(".")) return new Value(Convert.ToDouble(s));
+                return new Value(Convert.ToInt32(s));
             }
-            catch (Exception e) { }
+            catch (Exception e)
+            {
+                return new Value(s);
+            }
 
             throw new Exception("Bad string");
         }
-
-        public static value make_value__5(string s)
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static Value make_value__5(string s)
         {
-            if(s.Contains(".")){
-                numbers.value ans = new numbers.value();
-                ans.V = Convert.ToDouble(s);
-                ans.Kind = Value_Kind.Number_Kind;
-                return ans;
-            }else{
-                numbers.value ans = new numbers.value();
-                ans.V = Convert.ToInt32(s);
-                ans.Kind = Value_Kind.Number_Kind;
-                return ans;
-            }
+            return new Value(Convert.ToDouble(s));
         }
-        public static value make_value__4(bool b)
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static Value make_value__4(bool b)
         {
-            if(b){
-                return new value { V = 1.0, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
-            }else{
-                return new value { V = 0.0, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
-            }
-            
+            return new Value(b ? 1 : 0);
         }
-        public static value make_value__3(int index)
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+        public static Value make_value__3(int index)
         {
-            return new value { V = index, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
+            return new Value(index);
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static value make_value__2(double v)
+        public static Value make_value__2(double v)
         {
-            return new value { V = v, C = ' ', S = null, Kind = Value_Kind.Number_Kind, Object = null };
+            return new Value(v);
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static value? make_object_value(object v)
+        public static Value make_object_value(object v)
         {
-            return new value { V = 0.0, C = ' ', S = null, Kind = Value_Kind.Object_Kind, Object = v };
+            return new Value(v);
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static bool Oeq(value first, value second)
+        public static bool Oeq(Value first, Value second)
         {
-            if (first.Kind != second.Kind)
-            {
-                return false;
-            }
-            switch (first.Kind)
-            {
-                case Value_Kind.Number_Kind:
-                    return first.V == second.V;
-                case Value_Kind.String_Kind:
-                    return first.S == second.S;
-                case Value_Kind.Character_Kind:
-                    return first.C == second.C;
-            }
-            return false;
+            return first == second;
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static bool Ogt(value first, value second)
+        public static bool Ogt(Value first, Value second)
+        { 
+            return first > second;
+        }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
+
+        public static bool Oge(Value first, Value second)
         {
-            if (first.Kind != second.Kind)
-            {
-                return false;
-            }
-            switch (first.Kind)
-            {
-                case Value_Kind.Number_Kind:
-                    return first.V > second.V;
-                case Value_Kind.String_Kind:
-                    return first.S.CompareTo(second.S) > 0 ? true : false;
-                case Value_Kind.Character_Kind:
-                    return first.C > second.C;
-            }
-            return false;
+            return first >= second;
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static bool Oge(value first, value second)
+        public static bool Olt(Value first, Value second)
         {
-            if (first.Kind != second.Kind)
-            {
-                return false;
-            }
-            switch (first.Kind)
-            {
-                case Value_Kind.Number_Kind:
-                    return first.V >= second.V;
-                case Value_Kind.String_Kind:
-                    return first.S.CompareTo(second.S) >= 0 ? true : false;
-                case Value_Kind.Character_Kind:
-                    return first.C >= second.C;
-            }
-            return false;
+            return first < second;
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static bool Olt(value first, value second)
+        public static bool Ole(Value first, Value second)
         {
-            if (first.Kind != second.Kind)
-            {
-                return false;
-            }
-            switch (first.Kind)
-            {
-                case Value_Kind.Number_Kind:
-                    return first.V < second.V;
-                case Value_Kind.String_Kind:
-                    return first.S.CompareTo(second.S) < 0 ? true : false;
-                case Value_Kind.Character_Kind:
-                    return first.C < second.C;
-            }
-            return false;
+            return first <= second;
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static bool Ole(value first, value second)
+        public static int length_of(Value variable_Value)
         {
-            if (first.Kind != second.Kind)
-            {
-                return false;
-            }
-            switch (first.Kind)
-            {
-                case Value_Kind.Number_Kind:
-                    return first.V <= second.V;
-                case Value_Kind.String_Kind:
-                    return first.S.CompareTo(second.S) <= 0 ? true : false;
-                case Value_Kind.Character_Kind:
-                    return first.C <= second.C;
-            }
-            return false;
+            return variable_Value.ToString().Length;
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static int length_of(value variable_Value)
+        public static Value make_string_value(string new_string)
         {
-            if (variable_Value.Kind == Value_Kind.String_Kind)
-            {
-                return variable_Value.S.Length;
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            return new Value(new_string);
         }
+        [Obsolete("This function is no longer in use, please use the methods found on the Value instance.")]
 
-        public static value make_string_value(string new_string)
+        public static Value make_character_value(char new_char)
         {
-            return new value { V = 0.0, C = ' ', S = new_string, Kind = Value_Kind.String_Kind, Object = null };
-            //throw new NotImplementedException();
+            return new Value(new_char);
         }
 
-        public static value make_character_value(char new_char)
+        public static bool is_character(Value f)
         {
-            return new value { V = 0.0, C = new_char, S = "", Kind = Value_Kind.Character_Kind, Object = null };
-            //throw new NotImplementedException();
+            return f.IsCharacter();
         }
 
+        public static void copy(Value src, Value dest) {
+            // If these are struct values, we need to copy them over. Otherwise, they maintain an object reference.
+            switch (src.o)
+            {
+                case string s:
+                    dest.o = new string(s);
+                    break;
+                case char c:
+                    dest.o = c;
+                    break;
+                case double d:
+                    dest.o = d;
+                    break;
+                default:
+                    dest.o = src.o;
+                    break;
+            }
+        }
 
-        public static bool is_character(value f)
+        public static Value addValues(Value first, Value second)
         {
-            return f.Kind == Value_Kind.Character_Kind;
+            return first + second;
         }
-
-        public static void copy(numbers.value src, numbers.value dest) { 
-            dest.Kind = src.Kind;
-            dest.V = src.V;
-            dest.S = src.S;
-            dest.C = src.C;
-            dest.Object = src.Object;
-        }
-
-        public static numbers.value addValues(numbers.value first, numbers.value second){
-            numbers.value ans = new numbers.value();
-            if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind){
-                ans = new numbers.value() {V=first.V + second.V};
-            } else if(first.Kind == numbers.Value_Kind.String_Kind && second.Kind == numbers.Value_Kind.String_Kind){
-                ans = new numbers.value() {Kind=numbers.Value_Kind.String_Kind, S=first.S.Replace("\"","") + second.S.Replace("\"","")};
-            } else if(first.Kind == numbers.Value_Kind.Character_Kind && second.Kind == numbers.Value_Kind.Character_Kind){
-                ans = new numbers.value() {V=first.C + second.C};
-            }else if(first.Kind == numbers.Value_Kind.String_Kind && second.Kind == numbers.Value_Kind.Number_Kind){
-                ans = new numbers.value() {Kind=numbers.Value_Kind.String_Kind, S=first.S.Replace("\"","") + second.V};
-            }else if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.String_Kind){
-                ans = new numbers.value() {Kind=numbers.Value_Kind.String_Kind, S=first.V + second.S.Replace("\"","")};
-            }else if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Character_Kind && is_integer(first)){
-                char c = Convert.ToChar((int)first.V + (int)second.C);
-                ans = new numbers.value() {Kind=numbers.Value_Kind.Character_Kind, C=c};
-            }else if(first.Kind == numbers.Value_Kind.Character_Kind && second.Kind == numbers.Value_Kind.Number_Kind && is_integer(second)){
-                char c = Convert.ToChar((int)first.C + (int)second.V);
-                ans = new numbers.value() {Kind=numbers.Value_Kind.Character_Kind, C=c};
-            }else if(first.Kind == numbers.Value_Kind.String_Kind && second.Kind == numbers.Value_Kind.Character_Kind){
-                ans = new numbers.value() {Kind=numbers.Value_Kind.String_Kind, S=first.S + second.C};
-            }else if(first.Kind == numbers.Value_Kind.Character_Kind && second.Kind == numbers.Value_Kind.String_Kind){
-                ans = new numbers.value() {Kind=numbers.Value_Kind.String_Kind, S=first.C + second.S};
-            }
-            else {
-                throw new Exception("Cannot add type: [" + first.Kind + "] with type: [" + second.Kind + "]");
-            }
-            return ans;
-        }
-
-        public static numbers.value subValues(numbers.value first, numbers.value second){
-            numbers.value ans = new numbers.value();
-            if (first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind)
-            {
-                ans = new numbers.value() { V = first.V - second.V };
-            }
-            else if (first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Character_Kind)
-            {
-                ans = new numbers.value() { V = first.V - (int)second.C };
-            }
-            else if (first.Kind == numbers.Value_Kind.Character_Kind && second.Kind == numbers.Value_Kind.Number_Kind)
-            {
-                ans = new numbers.value() { V = (int)first.C - second.V };
-            }
-            else
-            {
-                throw new Exception("Cannot subtract type: [" + first.Kind + "] from type: [" + second.Kind + "]");
-            }
-            return ans;
-            
-        }
-
-        public static numbers.value negValue(numbers.value first)
+        
+        public static Value subValues(Value first, Value second)
         {
-            numbers.value ans = new numbers.value();
-            if (first.Kind == numbers.Value_Kind.Number_Kind)
-            {
-                ans = new numbers.value() { V = -first.V };
-            }
-            else
-            {
-                throw new Exception("Cannot negate type: [" + first.Kind + "]");
-            }
-            return ans;
-
+            return first - second;
         }
 
-        public static numbers.value multValues(numbers.value first, numbers.value second){
-            numbers.value ans = new numbers.value();
-            if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind){
-                ans = new numbers.value() {V=first.V * second.V};
-            } else{
-                throw new Exception("Cannot multiply type: [" + first.Kind + "] with type: [" + second.Kind + "]");
-            }
-            return ans;
-        }
-
-        public static numbers.value exponValues(numbers.value first, numbers.value second)
+        public static Value negValue(Value first)
         {
-            numbers.value ans = new numbers.value();
-            if (first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind)
+            if (first.o is double d)
             {
-                ans = new numbers.value() { V = Math.Pow(first.V, second.V) };
+                return new Value(-d);
             }
-            else
-            {
-                throw new Exception("Cannot multiply type: [" + first.Kind + "] with type: [" + second.Kind + "]");
-            }
-            return ans;
+            throw new Exception("Cannot negate type: [" + first.o?.GetType().Name ?? "null" + "]");
         }
 
-        public static numbers.value divValues(numbers.value first, numbers.value second){
-            numbers.value ans = new numbers.value();
-            if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind){
-                if(second.V == 0.0){
-                    throw new Exception("Cannot divide by 0!");
-                }
-                ans = new numbers.value() {V=first.V / second.V};
-            } else{
-                throw new Exception("Cannot divide type: [" + first.Kind + "] with type: [" + second.Kind + "]");
-            }
-            return ans;
-        }
-
-        public static numbers.value modValues(numbers.value first, numbers.value second){
-            numbers.value ans = new numbers.value();
-            if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind){
-                ans = new numbers.value() {V=first.V % second.V};
-            } else{
-                throw new Exception("Cannot mod type: [" + first.Kind + "] with type: [" + second.Kind + "]");
-            }
-            return ans;
-        }
-
-        public static numbers.value remValues(numbers.value first, numbers.value second){
-            numbers.value ans = new numbers.value();
-            if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind){
-                int temp; 
-                Math.DivRem((int)first.V, (int)second.V, out temp);
-                ans = new numbers.value() {V=temp};
-            } else{
-                throw new Exception("Cannot mod type: [" + first.Kind + "] with type: [" + second.Kind + "]");
-            }
-            return ans;
-        }
-
-        public static numbers.value findMax(numbers.value first, numbers.value second){
-            numbers.value ans = new numbers.value();
-            if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind){
-                ans = Math.Max(first.V, second.V) == first.V ? first : second; 
-            } else{
-                throw new Exception("Cannot find max of type: [" + first.Kind + "] with type: [" + second.Kind + "]");
-            }
-            return ans;
-        }
-
-        public static numbers.value findMin(numbers.value first, numbers.value second){
-            numbers.value ans = new numbers.value();
-            if(first.Kind == numbers.Value_Kind.Number_Kind && second.Kind == numbers.Value_Kind.Number_Kind){
-                ans = Math.Min(first.V, second.V) == first.V ? first : second; 
-            } else{
-                throw new Exception("Cannot find max of type: [" + first.Kind + "] with type: [" + second.Kind + "]");
-            }
-            return ans;
-        }
-
-        public static numbers.value Sinh(numbers.value first) {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find sinh of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sinh(first.V)};
-        }
-
-        public static numbers.value Tanh(numbers.value first)
+        public static Value multValues(Value first, Value second)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find tanh of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Tanh(first.V) };
+            return first * second;
         }
 
-        public static numbers.value Cosh(numbers.value first)
+        public static Value exponValues(Value first, Value second)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find cosh of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Cosh(first.V) };
+            return first.Pow(second);
         }
 
-        public static numbers.value ArcSinh(numbers.value first)
+        public static Value divValues(Value first, Value second)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find arcsinh of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Asinh(first.V) };
+            return first / second;
         }
 
-        public static numbers.value ArcTanh(numbers.value first)
+        public static Value modValues(Value first, Value second)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find arctanh of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Atanh(first.V) };
+            return first % second;
         }
 
-        public static numbers.value ArcCosh(numbers.value first)
+        public static Value remValues(Value first, Value second)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find arccosh of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Acosh(first.V) };
+            return first % second;
         }
 
-        public static numbers.value Coth(numbers.value first)
+        public static Value findMax(Value first, Value second)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find coth of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = 1/Math.Tanh(first.V) };
+            if (first.o is null || second.o is null) throw new Exception("Cannot find max of null value");
+            if (first.IsNumber() && second.IsNumber()) return new Value(Math.Max((double)first.o, (double)second.o));
+            throw new Exception($"Can't find the max of values with types {first.o.GetType().Name} and {second.o.GetType().Name}");
         }
 
-        public static numbers.value ArcCoth(numbers.value first)
+        public static Value findMin(Value first, Value second)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find arccoth of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = 1 / Math.Atanh(first.V) };
+            if (first.o is null || second.o is null) throw new Exception("Cannot find min of null value");
+            if (first.IsNumber() && second.IsNumber()) return new Value(Math.Min((double)first.o, (double)second.o));
+            throw new Exception($"Can't find the Min of values with types {first.o.GetType().Name} and {second.o.GetType().Name}");
         }
 
-        public static numbers.value Sqrt(numbers.value first)
-        {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find sqrt of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sqrt(first.V) };
+        public static Value Sinh(Value first) {
+            if (first.o is double d) return new Value(Math.Sinh(d));
+            throw new Exception($"Cannot find Sinh of object of type {first.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value Floor(numbers.value first)
+        public static Value Tanh(Value first)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find floor of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Floor(first.V) };
+            if (first.o is double d) return new Value(Math.Tanh(d));
+            throw new Exception($"Cannot find Tanh of object of type {first.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value Ceiling(numbers.value first)
+        public static Value Cosh(Value first)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find ceiling of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Ceiling(first.V) };
+            if (first.o is double d) return new Value(Math.Cosh(d));
+            throw new Exception($"Cannot find Cosh of object of type {first.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value Abs(numbers.value first)
+        public static Value ArcSinh(Value first)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find abs of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Abs(first.V) };
+            if (first.o is double d) return new Value(Math.Asinh(d));
+            throw new Exception($"Cannot find Asinh of object of type {first.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value Log(numbers.value first, numbers.value second)
+        public static Value ArcTanh(Value first)
         {
-            if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != numbers.Value_Kind.Number_Kind)
-            {
-                throw new Exception("Cannot find log of type: [" + first.Kind + "]");
-            }
-            return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Log(first.V, second.V) };
+            if (first.o is double d) return new Value(Math.Atanh(d));
+            throw new Exception($"Cannot find Atanh of object of type {first.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value Sin(numbers.value first, numbers.value second = null)
+        public static Value ArcCosh(Value first)
         {
-            bool isSecond = false;
-            try
+            if (first.o is double d) return new Value(Math.Acosh(d));
+            throw new Exception($"Cannot find Acosh of object of type {first.o?.GetType().Name ?? "null"}");
+        }
+
+        public static Value Coth(Value first)
+        {
+            if (first.o is double d) return new Value(1/Math.Tanh(d));
+            throw new Exception($"Cannot find Coth of object of type {first.o?.GetType().Name ?? "null"}");
+        }
+
+        public static Value ArcCoth(Value first)
+        {
+            if (first.o is double d) return new Value(Math.Atanh(d));
+            throw new Exception($"Cannot find Acoth of object of type {first.o?.GetType().Name ?? "null"}");
+        }
+
+        public static Value Sqrt(Value first)
+        {
+            if (first.o is double d) return new Value(Math.Sqrt(d));
+            throw new Exception($"Cannot find Sqrt of object of type {first.o?.GetType().Name ?? "null"}");
+        }
+
+        public static Value Floor(Value first)
+        {
+            if (first.o is double d) return new Value(Math.Floor(d));
+            throw new Exception($"Cannot find Floor of object of type {first.o?.GetType().Name ?? "null"}");
+        }
+
+        public static Value Ceiling(Value first)
+        {
+            if (first.o is double d) return new Value(Math.Ceiling(d));
+            throw new Exception($"Cannot find Ceiling of object of type {first.o?.GetType().Name ?? "null"}");
+        }
+
+        public static Value Abs(Value first)
+        {
+            if (first.o is double d) return new Value(Math.Abs(d));
+            throw new Exception($"Cannot find Abs of object of type {first.o?.GetType().Name ?? "null"}");
+        }
+
+        public static Value Log(Value first, Value second)
+        {
+            if (first.o is double d) return new Value(Math.Log(d));
+            throw new Exception($"Cannot find Log of objects of type {first.o?.GetType().Name ?? "null"} and {second.o?.GetType().Name ?? "null"}");
+        }
+
+        public static Value Sin(Value first, Value? second = null)
+        {
+            if (first.o is double d1)
             {
-                int temp = (int)second.V;
-                isSecond = true;
-            }
-            catch
-            {
-                isSecond = false;
-            }
-            if(!isSecond)
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind)
+                if (second is null)
                 {
-                    throw new Exception("Cannot find sin of type: [" + first.Kind + "]");
+                    return new Value(Math.Sin((double)first.o));
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sin(first.V) };
-            }
-            else
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != Value_Kind.Number_Kind)
+                if (second.o is double d2)
                 {
-                    throw new Exception("Cannot find sin of type: [" + first.Kind + "] with cycle of type: [" + second.Kind + "]");
+                    return new Value(Math.Sin(d1 / d2 * Math.PI * 2));
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sin(first.V / second.V * Math.PI * 2) };
-                
             }
-            
+            throw new Exception($"Cannot find Sin of objects of type {first.o?.GetType().Name ?? "null"} and {second?.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value Cos(numbers.value first, numbers.value second = null)
+        public static Value Cos(Value first, Value? second = null)
         {
-            bool isSecond = false;
-            try
+            if (first.o is double d1)
             {
-                int temp = (int)second.V;
-                isSecond = true;
-            }
-            catch
-            {
-                isSecond = false;
-            }
-            if (!isSecond)
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind)
+                if (second is null)
                 {
-                    throw new Exception("Cannot find cos of type: [" + first.Kind + "]");
+                    return new Value(Math.Cos(d1));
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Cos(first.V) };
-            }
-            else
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != Value_Kind.Number_Kind)
+                if (second.o is double d2)
                 {
-                    throw new Exception("Cannot find cos of type: [" + first.Kind + "] with cycle of type: [" + second.Kind + "]");
+                    return new Value(Math.Cos(d1 / d2 * Math.PI * 2));
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Cos(first.V / second.V * Math.PI * 2) };
-
             }
-
+            throw new Exception($"Cannot find Cos of objects of type {first.o?.GetType().Name ?? "null"} and {second?.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value Tan(numbers.value first, numbers.value second = null)
+        public static Value Tan(Value first, Value? second = null)
         {
-            bool isSecond = false;
-            try
-            {
-                int temp = (int)second.V;
-                isSecond = true;
-            }
-            catch
-            {
-                isSecond = false;
-            }
-            if (!isSecond)
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind)
-                {
-                    throw new Exception("Cannot find tan of type: [" + first.Kind + "]");
-                }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sin(first.V) };
-            }
-            else
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != Value_Kind.Number_Kind)
-                {
-                    throw new Exception("Cannot find tan of type: [" + first.Kind + "] with cycle of type: [" + second.Kind + "]");
-                }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Tan(first.V / second.V * Math.PI * 2) };
 
+            if (first.o is double d1)
+            {
+                if (second is null)
+                {
+                    return new Value(Math.Tan(d1)); //Math.Sin?
+                }
+                if (second.o is double d2)
+                {
+                    return new Value(Math.Tan(d1 / d2 * Math.PI * 2));
+                }
             }
-
+            throw new Exception($"Cannot find Tan of objects of type {first.o?.GetType().Name ?? "null"} and {second?.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value Cot(numbers.value first, numbers.value second = null)
+        public static Value Cot(Value first, Value? second = null)
         {
-            bool isSecond = false;
-            try
+            if (first.o is double d1)
             {
-                int temp = (int)second.V;
-                isSecond = true;
-            }
-            catch
-            {
-                isSecond = false;
-            }
-            if (!isSecond)
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind)
+                if (second is null)
                 {
-                    throw new Exception("Cannot find cot of type: [" + first.Kind + "]");
+                    return new Value(1 / Math.Tan(d1)); //Math.Sin?
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sin(first.V) };
-            }
-            else
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != Value_Kind.Number_Kind)
+                if (second.o is double d2)
                 {
-                    throw new Exception("Cannot find cot of type: [" + first.Kind + "] with cycle of type: [" + second.Kind + "]");
+                    return new Value(1 / Math.Tan(d1 / d2 * Math.PI * 2));
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = 1 / Math.Tan(first.V / second.V * Math.PI * 2) };
-
             }
-
+            throw new Exception($"Cannot find Cot of objects of type {first.o?.GetType().Name ?? "null"} and {second?.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value ArcSin(numbers.value first, numbers.value second = null)
+        public static Value ArcSin(Value first, Value? second = null)
         {
-            bool isSecond = false;
-            try
+            if (first.o is double d1)
             {
-                int temp = (int)second.V;
-                isSecond = true;
-            }
-            catch
-            {
-                isSecond = false;
-            }
-            if (!isSecond)
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind)
+                if (second is null)
                 {
-                    throw new Exception("Cannot find arcsin of type: [" + first.Kind + "]");
+                    return new Value(Math.Asin(d1)); //Math.Sin?
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sin(first.V) };
-            }
-            else
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != Value_Kind.Number_Kind)
+                if (second.o is double d2)
                 {
-                    throw new Exception("Cannot find arcsin of type: [" + first.Kind + "] with cycle of type: [" + second.Kind + "]");
+                    return new Value(Math.Asin(d1 / d2 * Math.PI * 2));
                 }
-                numbers.value ans = new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Asin(first.V / second.V * Math.PI * 2) };
-                return ans;
-
             }
-
+            throw new Exception($"Cannot find ArcSin of objects of type {first.o?.GetType().Name ?? "null"} and {second?.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value ArcCos(numbers.value first, numbers.value second = null)
+        public static Value ArcCos(Value first, Value? second = null)
         {
-            bool isSecond = false;
-            try
+            if (first.o is double d1)
             {
-                int temp = (int)second.V;
-                isSecond = true;
-            }
-            catch
-            {
-                isSecond = false;
-            }
-            if (!isSecond)
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind)
+                if (second is null)
                 {
-                    throw new Exception("Cannot find arccos of type: [" + first.Kind + "]");
+                    return new Value(Math.Acos(d1)); //Math.Sin?
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sin(first.V) };
-            }
-            else
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != Value_Kind.Number_Kind)
+                if (second.o is double d2)
                 {
-                    throw new Exception("Cannot find arccos of type: [" + first.Kind + "] with cycle of type: [" + second.Kind + "]");
+                    return new Value(Math.Acos(d1 / d2 * Math.PI * 2));
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Acos(first.V / second.V * Math.PI * 2) };
-
             }
-
+            throw new Exception($"Cannot find ArcCos of objects of type {first.o?.GetType().Name ?? "null"} and {second?.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value ArcTan(numbers.value first, numbers.value second = null)
+        public static Value ArcTan(Value first, Value? second = null)
         {
-            bool isSecond = false;
-            try
+            if (first.o is double d1)
             {
-                int temp = (int)second.V;
-                isSecond = true;
-            }
-            catch
-            {
-                isSecond = false;
-            }
-            if (!isSecond)
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind)
+                if (second is null)
                 {
-                    throw new Exception("Cannot find arctan of type: [" + first.Kind + "]");
+                    return new Value(Math.Atan(d1)); //Math.Sin?
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sin(first.V) };
-            }
-            else
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != Value_Kind.Number_Kind)
+                if (second.o is double d2)
                 {
-                    throw new Exception("Cannot find arctan of type: [" + first.Kind + "] with cycle of type: [" + second.Kind + "]");
+                    return new Value(Math.Atan(d1 / d2 * Math.PI * 2));
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Atan(first.V / second.V * Math.PI * 2) };
-
             }
-
+            throw new Exception($"Cannot find ArcTan of objects of type {first.o?.GetType().Name ?? "null"} and {second?.o?.GetType().Name ?? "null"}");
         }
 
-        public static numbers.value ArcCot(numbers.value first, numbers.value second = null)
+        public static Value ArcCot(Value first, Value second = null)
         {
-            bool isSecond = false;
-            try
+            if (first.o is double d1)
             {
-                int temp = (int)second.V;
-                isSecond = true;
-            }
-            catch
-            {
-                isSecond = false;
-            }
-            if (!isSecond)
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind)
+                if (second is null)
                 {
-                    throw new Exception("Cannot find arccot of type: [" + first.Kind + "]");
+                    return new Value(1 / Math.Atan(d1)); //Math.Sin?
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = Math.Sin(first.V) };
-            }
-            else
-            {
-                if (first.Kind != numbers.Value_Kind.Number_Kind || second.Kind != Value_Kind.Number_Kind)
+                if (second.o is double d2)
                 {
-                    throw new Exception("Cannot find arccot of type: [" + first.Kind + "] with cycle of type: [" + second.Kind + "]");
+                    return new Value(1 / Math.Atan(d1 / d2 * Math.PI * 2));
                 }
-                return new numbers.value() { Kind = Value_Kind.Number_Kind, V = 1 / Math.Atan(first.V / second.V * Math.PI * 2) };
-
             }
-
+            throw new Exception($"Cannot find ArcTan of objects of type {first.o?.GetType().Name ?? "null"} and {second?.o?.GetType().Name ?? "null"}");
         }
 
     }

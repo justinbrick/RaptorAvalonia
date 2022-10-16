@@ -17,6 +17,7 @@ using Avalonia.Input;
 using ReactiveUI;
 using System.Reactive;
 using interpreter;
+using numbers;
 
 namespace RAPTOR_Avalonia_MVVM.ViewModels
 {
@@ -25,7 +26,7 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
         public UserInputDialogViewModel() {
             this.text = "";
         }
-        public UserInputDialogViewModel(Parallelogram p, numbers.value v, Window w, bool compileMode = false) {
+        public UserInputDialogViewModel(Parallelogram p, Value v, Window w, bool compileMode = false) {
             try
             {
                 this.text = numbers.Numbers.msstring_view_image(v);

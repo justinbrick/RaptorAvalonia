@@ -13,6 +13,7 @@ using RAPTOR_Avalonia_MVVM.Controls;
 using Avalonia.Threading;
 using System.IO;
 using Avalonia.Controls;
+using numbers;
 
 namespace RAPTOR_Avalonia_MVVM
 {
@@ -36,21 +37,21 @@ namespace RAPTOR_Avalonia_MVVM
         {
 			return input_stream.ReadLine();
         }
-		public static void redirect_output(numbers.value filename)
+		public static void redirect_output(Value filename)
         {
 			//if (Output_Is_Redirected)
    //         {
 			//	Stop_Redirect_Output();
    //         }
 
-			if (filename.Kind == numbers.Value_Kind.String_Kind)
+			if (filename.o is string)
 			{
-				output_stream = new StreamWriter(filename.S);
+				output_stream = new StreamWriter(filename.o as string);
 				Output_Is_Redirected = true;
 			}
 			else
 			{
-				if (filename.V == 1)
+				if (filename.ToDouble() == 1)
 				{
 					SaveFileDialog fileChooser = new SaveFileDialog();
 					List<FileDialogFilter> Filters = new List<FileDialogFilter>();
@@ -88,21 +89,21 @@ namespace RAPTOR_Avalonia_MVVM
 
 		}
 
-		public static void redirect_output_append(numbers.value filename)
+		public static void redirect_output_append(Value filename)
 		{
 			//if (Output_Is_Redirected)
 			//{
 			//	Stop_Redirect_Output();
 			//}
 
-			if (filename.Kind == numbers.Value_Kind.String_Kind)
+			if (filename.o is string s)
 			{
-				output_stream = new StreamWriter(filename.S, true);
+				output_stream = new StreamWriter(s, true);
 				Output_Is_Redirected = true;
 			}
 			else
 			{
-				if (filename.V == 1)
+				if (filename.ToDouble() == 1)
 				{
 					string file = openFileFunction();
 
@@ -119,21 +120,21 @@ namespace RAPTOR_Avalonia_MVVM
 
 		}
 
-		public static void redirect_input(numbers.value filename)
+		public static void redirect_input(Value filename)
 		{
             //if (Input_Is_Redirected)
             //{
             //    Stop_Redirect_Input();
             //}
 
-            if (filename.Kind == numbers.Value_Kind.String_Kind)
+            if (filename.o is string s)
 			{
-				input_stream = new StreamReader(filename.S);
+				input_stream = new StreamReader(s);
 				Input_Is_Redirected = true;
 			}
             else
             {
-				if(filename.V == 1) {
+				if(filename.ToDouble() == 1) {
 
 					string file = openFileFunction();
 

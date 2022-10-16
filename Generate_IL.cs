@@ -7,6 +7,7 @@ using System.Threading;
 using Avalonia.Input;
 using Avalonia.Threading;
 using RAPTOR_Avalonia_MVVM.Views;
+using numbers;
 
 namespace raptor
 {
@@ -218,7 +219,7 @@ namespace raptor
                 //local.SetLocalSymInfo(name.ToLower());
                 variables.Add(name.ToLower(), local);
             }
-            Emit_Method_Virt("numbers.value", "_deep_clone");
+            Emit_Method_Virt("Value", "_deep_clone");
             gen.Emit(OpCodes.Stloc, local);
         }
         public void Indent()
@@ -737,9 +738,9 @@ namespace raptor
                     {
                         local = ((LocalBuilder)variables[name]);
                         subILGenerator.Emit(OpCodes.Ldarg_S, k);
-                        subILGenerator.Emit(OpCodes.Castclass, typeof(numbers.value));
+                        subILGenerator.Emit(OpCodes.Castclass, typeof(Value));
                         subILGenerator.Emit(OpCodes.Ldloc, local);
-                        subILGenerator.Emit(OpCodes.Castclass, typeof(numbers.value));
+                        subILGenerator.Emit(OpCodes.Castclass, typeof(Value));
                         Emit_Method("numbers.Numbers", "copy");
                     }
                 }
@@ -766,11 +767,11 @@ namespace raptor
                     if (variables.ContainsKey(name))
                     {
                         local = ((LocalBuilder)variables[name]);
-                        if (local.LocalType == typeof(numbers.value))
+                        if (local.LocalType == typeof(Value))
                         {
                             subILGenerator.Emit(OpCodes.Ldloc, local);
                             subILGenerator.Emit(OpCodes.Ldarg_S, k);
-                            subILGenerator.Emit(OpCodes.Castclass, typeof(numbers.value));
+                            subILGenerator.Emit(OpCodes.Castclass, typeof(Value));
                             Emit_Method("numbers.Numbers", "copy");
                         }
                     }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Reflection.Emit;
 using raptor;
+using numbers;
 
 namespace RAPTOR_Avalonia_MVVM
 {
@@ -32,7 +33,7 @@ namespace RAPTOR_Avalonia_MVVM
             return null;
         }
 
-        public static numbers.value Invoke_Function(string name,
+        public static Value Invoke_Function(string name,
             parse_tree.Parameter_List parameters)
         {
 			parse_tree.Parameter_List walk;
@@ -56,7 +57,7 @@ namespace RAPTOR_Avalonia_MVVM
 			walk = parameters;
 			for (int i = 0; i < num_parameters; i++)
 			{
-				numbers.value the_value;
+				Value the_value;
 				string array_name;
 				if (parameter_info[i].ParameterType.Name == "Int32" ||
 					parameter_info[i].ParameterType.Name == "Int32&")
@@ -264,7 +265,7 @@ namespace RAPTOR_Avalonia_MVVM
 					//		"parameter for " +
 					//		parameter_info[i].Name);
 					//}
-					Variable ansdufba = new Variable("Fail", new numbers.value() { V = 1 });
+					Variable ansdufba = new Variable("Fail", new Value(1));
 				}
 				else if (parameter_info[i].ParameterType.Name == "Double&")
 				{
@@ -276,7 +277,7 @@ namespace RAPTOR_Avalonia_MVVM
 					//		"parameter for " +
 					//		parameter_info[i].Name);
 					//}
-					Variable ansdufba = new Variable("Fail", new numbers.value() { V = 2 });
+					Variable ansdufba = new Variable("Fail", new Value(2));
 				}
 				else if (parameter_info[i].ParameterType.Name == "Single&")
 				{
@@ -288,7 +289,7 @@ namespace RAPTOR_Avalonia_MVVM
 					//		"parameter for " +
 					//		parameter_info[i].Name);
 					//}
-					Variable ansdufba = new Variable("Fail", new numbers.value() { V = 3 });
+					Variable ansdufba = new Variable("Fail", new Value(3));
 				}
 				else if (parameter_info[i].ParameterType.Name == "Int32[]" ||
 					(parameter_info[i].ParameterType.Name == "Int32[]&" &&
@@ -571,7 +572,7 @@ namespace RAPTOR_Avalonia_MVVM
 		public static void Invoke(string name,
 			parse_tree.Parameter_List parameters)
 		{
-			numbers.value dummy = Invoke_Function(name, parameters);
+			Value dummy = Invoke_Function(name, parameters);
 		}
 
 		public static int Parameter_Count(string name)
@@ -688,7 +689,7 @@ namespace RAPTOR_Avalonia_MVVM
 			parse_tree.Parameter_List parameters,
 			Generate_IL gil)
 		{
-			numbers.value dummyValue = new numbers.value();
+			Value dummyValue = new Value();
 			Type numbersValueType = dummyValue.GetType();
 			ILGenerator gen = gil.gen;
 			parse_tree.Parameter_List walk;

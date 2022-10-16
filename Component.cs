@@ -6,6 +6,7 @@ using RAPTOR_Avalonia_MVVM;
 using Avalonia;
 using RAPTOR_Avalonia_MVVM.ViewModels;
 using RAPTOR_Avalonia_MVVM.Controls;
+using numbers;
 
 namespace raptor
 {
@@ -131,17 +132,17 @@ namespace raptor
         {
             return method_expressions.Add(e);
         }
-        internal void addValue(numbers.value v)
+        internal void addValue(Value v)
         {
             values.Add(v);
         }
-        internal numbers.value getValue(int i)
+        internal Value getValue(int i)
         {
             if (values[i] == null)
             {
                 throw new System.Exception("method failed to return a value");
             }
-            return values[i] as numbers.value;
+            return values[i] as Value;
         }
         public virtual void reset_this_method_expressions_run()
         {

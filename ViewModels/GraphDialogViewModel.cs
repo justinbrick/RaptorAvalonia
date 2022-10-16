@@ -20,6 +20,7 @@ using interpreter;
 using RAPTOR_Avalonia_MVVM.Controls;
 using RAPTOR_Avalonia_MVVM.Views;
 using Avalonia.Threading;
+using numbers;
 
 namespace RAPTOR_Avalonia_MVVM.ViewModels
 {
@@ -234,7 +235,7 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
             }, DispatcherPriority.Background);
         }
 
-        public static numbers.value GetMaxHeight()
+        public static Value GetMaxHeight()
         {
             
             double h = 0;
@@ -251,12 +252,12 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
                 }
 
             }).Wait(-1);
-            
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = h };
+
+            return new Value(h);
             
         }
 
-        public static numbers.value GetMaxWidth()
+        public static Value GetMaxWidth()
         {
 
             //DotnetGraphControl.dngw.GetMaxWidth();
@@ -274,7 +275,7 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
                 }
 
             }).Wait(-1);
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = w };
+            return new Value(w);
         }
 
         public static void OpenGraphWindow(int w, int h)
@@ -329,28 +330,23 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
 
 
 
-        public static numbers.value GetMouseX()
+        public static Value GetMouseX()
         {
-            
-
             int x = DotnetGraphControl.dngw.GetMouseX();
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = x };
+            return new Value(x);
         }
-        public static numbers.value GetMouseY()
+        public static Value GetMouseY()
         {
-            
-
             int y = DotnetGraphControl.dngw.GetMouseY();
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = y };
+            return new Value(y);
         }
-        public static numbers.value LoadBitmap(string fileName)
+        public static Value LoadBitmap(string fileName)
         {
             // "../../../sample_640×426.bmp"
             
 
             int i = DotnetGraphControl.dngw.LoadBitmap(fileName);
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = i };
-
+            return new Value(i);
         }
         public static void DrawBitmap(int index, int x, int y, int width, int height)
         {
@@ -377,27 +373,27 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
 
         }
 
-        public static numbers.value? GetKey()
+        public static Value? GetKey()
         {
             
 
             Key k = DotnetGraphControl.dngw.GetKey();
 
             int x = getAsciiValue((int)k);
-            
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = getAsciiValue((int)k) };
+
+            return new Value(getAsciiValue((int)k));
         }
 
-        public static numbers.value? GetKeyString()
+        public static Value? GetKeyString()
         {
             
 
             Key k = DotnetGraphControl.dngw.GetKey();
 
-            return new numbers.value() { Kind = numbers.Value_Kind.String_Kind, S = k + "" };
+            return new Value(k + "");
         }
 
-        public static numbers.value GetPixel(int x, int y)
+        public static Value GetPixel(int x, int y)
         {
             
 
@@ -408,7 +404,7 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
 
             }).Wait(-1);
 
-            return new numbers.value() { Kind = numbers.Value_Kind.String_Kind, S = c + "" };
+            return new Value(c + "");
         }
 
         public static void SaveGraphWindow(string filename)
@@ -452,11 +448,11 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
             return -1;
         }
 
-        public static numbers.value GetClosestColor(int r, int g, int b)
+        public static Value GetClosestColor(int r, int g, int b)
         {
             int c = DotnetGraphControl.GetClosestColor(r, g, b);
 
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = c , S = (Color_Type)c + ""};
+            return new Value(c);
         }
 
         public static bool MouseButtonDown(MouseButton button)
@@ -484,15 +480,15 @@ namespace RAPTOR_Avalonia_MVVM.ViewModels
             await DotnetGraphControl.dngw.GetMouseButton(button);
         }
 
-        public static numbers.value GetFontHeight()
+        public static Value GetFontHeight()
         {
             int x = DotnetGraphControl.dngw.GetFontHeight();
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = x };
+            return new Value(x);
         }
-        public static numbers.value GetFontWidth()
+        public static Value GetFontWidth()
         {
             int x = DotnetGraphControl.dngw.GetFontWidth();
-            return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = x };
+            return new Value(x);
 
         }
     }

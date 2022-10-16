@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using RAPTOR_Avalonia_MVVM.Controls;
 using Avalonia.Threading;
 using Avalonia.Controls;
+using numbers;
 
 namespace parse_tree
 {
@@ -401,7 +402,7 @@ namespace parse_tree
     }
     public abstract class Value_Parseable : Parseable
     {
-        public abstract numbers.value Execute(Lexer l);
+        public abstract Value Execute(Lexer l);
     }
     public class Expression : Value_Parseable
     {
@@ -427,7 +428,7 @@ namespace parse_tree
             }
         }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             return left.Execute(l);
         }
 
@@ -452,10 +453,10 @@ namespace parse_tree
     {
         public Add_Expression(Value_Parseable left) : base(left) { }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
 
-            numbers.value first = left.Execute(l);
-            numbers.value second = right.Execute(l);
+            Value first = left.Execute(l);
+            Value second = right.Execute(l);
             return numbers.Numbers.addValues(first, second);
         }
 
@@ -486,10 +487,10 @@ namespace parse_tree
     {
         public Minus_Expression(Value_Parseable left) : base(left) { }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
 
-            numbers.value first = left.Execute(l);
-            numbers.value second = right.Execute(l);
+            Value first = left.Execute(l);
+            Value second = right.Execute(l);
             return numbers.Numbers.subValues(first, second);
         }
 
@@ -558,7 +559,7 @@ namespace parse_tree
                 }
             }
             string str = l.Get_Text(id.start, id.finish);
-            numbers.value[] ps = new numbers.value[0];
+            Value[] ps = new Value[0];
             if (param_list != null)
             {
                 Runtime.processing_parameter_list = true;
@@ -709,11 +710,11 @@ namespace parse_tree
                     string t = "";
                     try
                     {
-                        t = ps[2].S.Replace("\"", "");
+                        t = ps[2].ToString().Replace("\"", "");
                     }
                     catch
                     {
-                        t = ps[2].C + "";
+                        t = ps[2].ToCharacter() + "";
                     }
                     int c = numbers.Numbers.integer_of(ps[3]);
                     GraphDialogViewModel.DisplayText(x1, y1, t, (Color_Type)c);
@@ -748,10 +749,10 @@ namespace parse_tree
             {
                 checkOpenGraph();
                 mw.waitingForMouse = true;
-                mw.mouseWait = ps[0].V == 86 ? Avalonia.Input.MouseButton.Left : Avalonia.Input.MouseButton.Right;
+                mw.mouseWait = ps[0].ToDouble() == 86 ? Avalonia.Input.MouseButton.Left : Avalonia.Input.MouseButton.Right;
                 Dispatcher.UIThread.Post(() =>
                 {
-                    Avalonia.Input.MouseButton b = ps[0].V == 86 ? Avalonia.Input.MouseButton.Left : Avalonia.Input.MouseButton.Right;
+                    Avalonia.Input.MouseButton b = ps[0].ToDouble() == 86 ? Avalonia.Input.MouseButton.Left : Avalonia.Input.MouseButton.Right;
                     GraphDialogViewModel.WaitForMouseButton(b);
                     if (mw.myTimer != null)
                     {
@@ -840,7 +841,7 @@ namespace parse_tree
                 checkOpenGraph();
                 Dispatcher.UIThread.Post(() =>
                 {
-                    string f = ps[0].S;
+                    string f = ps[0].ToString();
                     GraphDialogViewModel.SaveGraphWindow(f);
                 }, DispatcherPriority.Background);
             }
@@ -849,11 +850,11 @@ namespace parse_tree
                 checkOpenGraph();
                 Dispatcher.UIThread.InvokeAsync(async () =>
                 {
-                    Avalonia.Input.MouseButton m = ps[0].V == 86 ? Avalonia.Input.MouseButton.Left : Avalonia.Input.MouseButton.Right;
+                    Avalonia.Input.MouseButton m = ps[0].ToDouble() == 86 ? Avalonia.Input.MouseButton.Left : Avalonia.Input.MouseButton.Right;
                     await GraphDialogViewModel.GetMouseButton(m);
 
-                    numbers.value x = new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = DotnetGraphControl.xLoc };
-                    numbers.value y = new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = DotnetGraphControl.yLoc };
+                    Value x = new Value(DotnetGraphControl.xLoc);
+                    Value y = new Value(DotnetGraphControl.yLoc);
 
                     ((Expr_Output)param_list.next.parameter).Assign_To(l, x);
                     ((Expr_Output)param_list.next.next.parameter).Assign_To(l, y);
@@ -881,7 +882,7 @@ namespace parse_tree
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    string soundFile = ps[0].S;
+                    string soundFile = ps[0].ToString();
                     GraphDialogViewModel.PlaySound(soundFile);
                 }, DispatcherPriority.Background);
 
@@ -890,7 +891,7 @@ namespace parse_tree
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    string soundFile = ps[0].S;
+                    string soundFile = ps[0].ToString();
                     GraphDialogViewModel.PlaySoundBackground(soundFile);
                 }, DispatcherPriority.Background);
 
@@ -899,7 +900,7 @@ namespace parse_tree
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    string soundFile = ps[0].S;
+                    string soundFile = ps[0].ToString();
                     GraphDialogViewModel.PlaySoundBackgroundLoop(soundFile);
                 }, DispatcherPriority.Background);
 
@@ -1413,9 +1414,9 @@ namespace parse_tree
     {
         public override void Execute(Lexer l)
         {
-            //Variable v = new Variable(l.Get_Text(id.start, id.finish), new numbers.value() { V = 22222 });
+            //Variable v = new Variable(l.Get_Text(id.start, id.finish), new Value() { V = 22222 });
             MainWindowViewModel mw = MainWindowViewModel.GetMainWindowViewModel();
-            numbers.value[] ps = new numbers.value[0];
+            Value[] ps = new Value[0];
             if (param_list != null)
             {
                 Runtime.processing_parameter_list = true;
@@ -1485,7 +1486,7 @@ namespace parse_tree
             if (sub.Start.GetType() == typeof(Oval_Procedure))
             { //if its a user procedure
                 Runtime.processing_parameter_list = true;
-                numbers.value[] ps = param_list.Execute(l);
+                Value[] ps = param_list.Execute(l);
 
                 Oval_Procedure st = ((Oval_Procedure)sub.Start);
                 string[] paramNames = st.param_names;
@@ -1504,14 +1505,14 @@ namespace parse_tree
                     {
                         break;
                     }
-                    numbers.value num = ps[i];
-                    if (num.Kind == numbers.Value_Kind.Ref_1D)
+                    Value num = ps[i];
+                    if (num.o is Array && (num.o as Array).Rank == 1)
                     {
 
-                        Variable oneD = (Variable)num.Object;
+                        Variable oneD = (Variable)num.o;
                         ObservableCollection<Arr> a = oneD.values;
                         int size = numbers.Numbers.integer_of(oneD.values[0].value);
-                        Variable v2 = new Variable(paramNames[i], size, new numbers.value());
+                        Variable v2 = new Variable(paramNames[i], size, new Value());
                         Variable temp = v2;
                         mw.theVariables.RemoveAt(mw.theVariables.IndexOf(temp));
                         mw.theVariables.Insert(1, temp);
@@ -1521,15 +1522,15 @@ namespace parse_tree
                         }
 
                     }
-                    else if (num.Kind == numbers.Value_Kind.Ref_2D)
+                    else if (num.o is Array && (num.o as Array).Rank == 2)
                     {
 
-                        Variable twoD = (Variable)num.Object;
+                        Variable twoD = (Variable)num.o;
                         ObservableCollection<Arr> a = twoD.values;
                         int rows = numbers.Numbers.integer_of(a[0].value);
                         int cols = numbers.Numbers.integer_of(a[1].values[0].value);
 
-                        Variable v2 = new Variable(paramNames[i], rows, cols, new numbers.value());
+                        Variable v2 = new Variable(paramNames[i], rows, cols, new Value());
                         Variable temp = v2;
                         mw.theVariables.RemoveAt(mw.theVariables.IndexOf(temp));
                         mw.theVariables.Insert(1, temp);
@@ -1626,7 +1627,7 @@ namespace parse_tree
 
         public override void Execute(Lexer l)
         {
-            Variable v = new Variable(l.Get_Text(id.start, id.finish), new numbers.value() { V = 44444 });
+            Variable v = new Variable(l.Get_Text(id.start, id.finish), new Value(44444));
             return;
         }
 
@@ -1652,7 +1653,7 @@ namespace parse_tree
         public Lsuffix? lsuffix;
 
         // execute the lhs of an assignment, takes in a value v --> what the rhs produced
-        public abstract numbers.value Execute(Lexer l);
+        public abstract Value Execute(Lexer l);
 
     }
     public class Expr_Assignment : Assignment
@@ -1660,8 +1661,8 @@ namespace parse_tree
         public Expression expr_part;
 
         // execute expr_part (rhs) return the value of expr_part
-        public override numbers.value Execute(Lexer l){
-            numbers.value val = expr_part.Execute(l); /* get rhs into a value */
+        public override Value Execute(Lexer l){
+            Value val = expr_part.Execute(l); /* get rhs into a value */
             this.lhs.Execute(l, val);
             return val;
         }
@@ -1700,7 +1701,7 @@ namespace parse_tree
     // Lhs => id[\[Expression[, Expression]\]]
     public abstract class Lhs : Parseable {
 
-        public abstract void Execute(Lexer l, numbers.value v);
+        public abstract void Execute(Lexer l, Value v);
 
         public override abstract void Emit_Code(Generate_Interface gen);
 
@@ -1715,7 +1716,7 @@ namespace parse_tree
             this.id = id;
         }
 
-        public override void Execute(Lexer l, numbers.value v){
+        public override void Execute(Lexer l, Value v){
            string varname = l.Get_Text(id.start, id.finish);
            Runtime.setVariable(varname, v);
         }
@@ -1757,8 +1758,8 @@ namespace parse_tree
             this.reference = reference;
         }
 
-        public override void Execute(Lexer l, numbers.value v){
-            numbers.value ref_val = reference.Execute(l);
+        public override void Execute(Lexer l, Value v){
+            Value ref_val = reference.Execute(l);
             string varname = l.Get_Text(id.start, id.finish);
             if (!numbers.Numbers.is_integer(ref_val))
             {
@@ -1821,14 +1822,14 @@ namespace parse_tree
             this.reference2 = ref2;
         }
 
-        public override void Execute(Lexer l, numbers.value v){
-            numbers.value ref_val1 = reference.Execute(l);
+        public override void Execute(Lexer l, Value v){
+            Value ref_val1 = reference.Execute(l);
             if (!numbers.Numbers.is_integer(ref_val1))
             {
                 throw new raptor.RuntimeException(numbers.Numbers.msstring_view_image(ref_val1) +
                     " not a valid array location--must be integer");
             }
-            numbers.value ref_val2 = reference2.Execute(l);
+            Value ref_val2 = reference2.Execute(l);
             if (!numbers.Numbers.is_integer(ref_val2))
             {
                 throw new raptor.RuntimeException(numbers.Numbers.msstring_view_image(ref_val2) +
@@ -1911,7 +1912,7 @@ namespace parse_tree
     public class Empty_Lsuffix : Lsuffix { }
 
     public abstract class Rhs { 
-        public abstract numbers.value Execute(Lexer l);
+        public abstract Value Execute(Lexer l);
 
         public abstract void Emit_Code(Generate_Interface gen);
 
@@ -1926,7 +1927,7 @@ namespace parse_tree
             this.id = ident;
         }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             string varname = l.Get_Text(id.start, id.finish);
             return Runtime.getVariable(varname);
         }
@@ -1951,8 +1952,8 @@ namespace parse_tree
     {
         public Expression reference;
 
-        public override numbers.value Execute(Lexer l){
-            numbers.value ref_val = reference.Execute(l);
+        public override Value Execute(Lexer l){
+            Value ref_val = reference.Execute(l);
             string varname = l.Get_Text(id.start, id.finish);
             if (!numbers.Numbers.is_integer(ref_val))
             {
@@ -1985,9 +1986,9 @@ namespace parse_tree
     {
         public Expression reference2;
 
-        public override numbers.value Execute(Lexer l){
-            numbers.value ref_val = reference.Execute(l);
-            numbers.value ref_val2 = reference2.Execute(l);
+        public override Value Execute(Lexer l){
+            Value ref_val = reference.Execute(l);
+            Value ref_val2 = reference2.Execute(l);
             string varname = l.Get_Text(id.start, id.finish);
             if (!numbers.Numbers.is_integer(ref_val))
             {
@@ -2046,7 +2047,7 @@ namespace parse_tree
 
     public abstract class Expon : Value_Parseable {
 
-        public override abstract numbers.value Execute(Lexer l);
+        public override abstract Value Execute(Lexer l);
 
     }
 
@@ -2056,8 +2057,8 @@ namespace parse_tree
         public int index;
         public Expon expon_parse_tree;
 
-        public override numbers.value Execute(Lexer l){
-            return new numbers.value(){V=666};
+        public override Value Execute(Lexer l){
+            return new Value(666);
         }
 
         public override void Emit_Code(Generate_Interface gen)  
@@ -2085,7 +2086,7 @@ namespace parse_tree
             return false;
         }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             return rhs.Execute(l);
         }
 
@@ -2109,7 +2110,7 @@ namespace parse_tree
             this.number = t;
         }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             string s = l.Get_Text(number.start, number.finish);
             return numbers.Numbers.make_value__5(s);
         }
@@ -2117,7 +2118,7 @@ namespace parse_tree
         public override void Emit_Code(Generate_Interface gen)  
         {
             string s = Component.the_lexer.Get_Text(number.start, number.finish);
-            double val = (double)(numbers.Numbers.make_value__5(s).V);
+            double val = (double)(numbers.Numbers.make_value__5(s).ToDouble());
             gen.Emit_Load_Number(val);
         }
 
@@ -2137,10 +2138,10 @@ namespace parse_tree
             this.e = e;
         }
         
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             Number_Expon ne = (Number_Expon)e;
-            numbers.value temp = ne.Execute(l);
-            temp.V = temp.V * -1;
+            Value temp = ne.Execute(l);
+            temp.o = temp.ToDouble() * -1;
             return temp;
         }
 
@@ -2173,8 +2174,8 @@ namespace parse_tree
             this.s = s;
         }
 
-        public override numbers.value Execute(Lexer l){
-            return new numbers.value(){Kind=numbers.Value_Kind.String_Kind, S=l.Get_Text(s.start+1, s.finish-1)};
+        public override Value Execute(Lexer l){
+            return new Value(l.Get_Text(s.start + 1, s.finish - 1));
         }
 
         public override void Emit_Code(Generate_Interface gen)  
@@ -2196,7 +2197,7 @@ namespace parse_tree
             this.expr_part = e;
         }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             return expr_part.Execute(l);
         }
 
@@ -2222,8 +2223,8 @@ namespace parse_tree
             this.id = id;
         }
 
-        public override numbers.value Execute(Lexer l){
-            //return new numbers.value() { V = 666 };
+        public override Value Execute(Lexer l){
+            //return new Value() { V = 666 };
             throw new NotImplementedException();
         }
 
@@ -2243,68 +2244,68 @@ namespace parse_tree
     {
         public Func0_Expon(Token id) : base(id) { }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
            string s = l.Get_Text(id.start, id.finish);
            switch(s.ToLower()){
                 case "true":
-                    return new numbers.value(){V=1};
+                    return new Value(1);
                 case "false":
-                    return new numbers.value(){V=0};
+                    return new Value(0);
                 case "pi":
-                    return new numbers.value(){V=3.14159};
+                    return new Value(Math.PI);
                 case "e":
-                    return new numbers.value(){V=2.71828};
+                    return new Value(Math.E);
                 case "random":
                     Random r = new Random();
-                    return new numbers.value(){V=r.NextDouble()};
+                    return new Value(r.NextDouble());
                 case "black":
-                    return new numbers.value(){V=0};
+                    return new Value(0);
                 case "blue":
-                    return new numbers.value(){V=1};
+                    return new Value(1);
                 case "green":
-                    return new numbers.value(){V=2};
+                    return new Value(2);
                 case "cyan":
-                    return new numbers.value(){V=3};
+                    return new Value(3);
                 case "red":
-                    return new numbers.value(){V=4};
+                    return new Value(4);
                 case "magenta":
-                    return new numbers.value(){V=5};
+                    return new Value(5);
                 case "brown":
-                    return new numbers.value(){V=6};
+                    return new Value(6);
                 case "light_gray":
-                    return new numbers.value(){V=7};
+                    return new Value(7);
                 case "dark_gray":
-                    return new numbers.value(){V=8};
+                    return new Value(8);
                 case "light_blue":
-                    return new numbers.value(){V=9};
+                    return new Value(9);
                 case "light_green":
-                    return new numbers.value(){V=10};
+                    return new Value(10);
                 case "light_cyan":
-                    return new numbers.value(){V=11};
+                    return new Value(11);
                 case "light_red":
-                    return new numbers.value(){V=12};
+                    return new Value(12);
                 case "light_magenta":
-                    return new numbers.value(){V=13};
+                    return new Value(13);
                 case "yellow":
-                    return new numbers.value(){V=14};
+                    return new Value(14);
                 case "pink":
-                    return new numbers.value(){V=15};
+                    return new Value(15);
                 case "purple":
-                    return new numbers.value(){V=16};
+                    return new Value(16);
                 case "white":
-                    return new numbers.value(){V=17};
+                    return new Value(17);
                 case "unfilled":
-                    return new numbers.value(){V=0};
+                    return new Value(0);
                 case "filled":
-                    return new numbers.value(){V=1};
+                    return new Value(2);
                 case "yes":
-                    return new numbers.value(){V=1};
+                    return new Value(1);
                 case "no":
-                    return new numbers.value(){V=0};
+                    return new Value(0);
                 case "left_button":
-                    return new numbers.value() { V = 86 };
+                    return new Value(86);
                 case "right_button":
-                    return new numbers.value() { V = 87 };
+                    return new Value(87);
                 case "get_mouse_x":
                     Proc_Call.checkOpenGraph();
                     return GraphDialogViewModel.GetMouseX();
@@ -2328,7 +2329,7 @@ namespace parse_tree
                     {
                         h = GraphDialogViewModel.GetWindowHeight();
                     }).Wait(-1);
-                    return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = h };
+                    return new Value(h);
                 case "get_window_width":
                     Proc_Call.checkOpenGraph();
                     double w = 0;
@@ -2336,7 +2337,7 @@ namespace parse_tree
                     {
                         w = GraphDialogViewModel.GetWindowWidth();
                     }).Wait(-1);
-                    return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = w };
+                    return new Value(w);
                 case "get_font_height":
                     Proc_Call.checkOpenGraph();
                     return GraphDialogViewModel.GetFontHeight();
@@ -2344,7 +2345,7 @@ namespace parse_tree
                     Proc_Call.checkOpenGraph();
                     return GraphDialogViewModel.GetFontWidth();
             }
-            //return new numbers.value() { V = 9999 };
+            //return new Value() { V = 9999 };
             throw new NotImplementedException();
         }
 
@@ -2388,9 +2389,9 @@ namespace parse_tree
             this.s = s;
         }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             char ans = l.Get_Text(s.start, s.finish)[1];
-            return new numbers.value(){C=ans, Kind=numbers.Value_Kind.Character_Kind};
+            return new Value(ans);
         }
 
         public override void Emit_Code(Generate_Interface gen)  
@@ -2407,10 +2408,10 @@ namespace parse_tree
     public class Func_Expon : Id_Expon {
         public Parameter_List parameters;
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             string s = l.Get_Text(id.start, id.finish);
             Runtime.processing_parameter_list = true;
-            numbers.value[] ps = parameters.Execute(l);
+            Value[] ps = parameters.Execute(l);
             Runtime.processing_parameter_list = false;
             switch (s.ToLower()) {
                 case "sin":
@@ -2444,7 +2445,7 @@ namespace parse_tree
                     else
                     { return numbers.Numbers.ArcCos(ps[0], ps[1]); }
                 case "log":
-                    return new numbers.value() { V = Math.Log(ps[0].V) };
+                    return new Value(Math.Log(ps[0].ToDouble()));
                 case "arctan":
                     if (ps.Length == 1)
                     { return numbers.Numbers.ArcTan(ps[0], numbers.Numbers.Two_Pi); }
@@ -2460,42 +2461,42 @@ namespace parse_tree
                 case "max":
                     return numbers.Numbers.findMax(ps[0], ps[1]);
                 case "sinh":
-                    return new numbers.value() { V = Math.Sinh(ps[0].V) };
+                    return new Value(Math.Sinh(ps[0].ToDouble()));
                 case "tanh":
-                    return new numbers.value() { V = Math.Tanh(ps[0].V) };
+                    return new Value(Math.Tanh(ps[0].ToDouble()));
                 case "cosh":
-                    return new numbers.value() { V = Math.Cosh(ps[0].V) };
+                    return new Value(Math.Cosh(ps[0].ToDouble()));
                 case "arccosh":
-                    return new numbers.value() { V = Math.Acosh(ps[0].V) };
+                    return new Value(Math.Acosh(ps[0].ToDouble()));
                 case "arcsinh":
-                    return new numbers.value() { V = Math.Asinh(ps[0].V) };
+                    return new Value(Math.Asinh(ps[0].ToDouble()));
                 case "arctanh":
-                    return new numbers.value() { V = Math.Atanh(ps[0].V) };
+                    return new Value(Math.Atanh(ps[0].ToDouble()));
                 case "coth":
-                    return new numbers.value() { V = 1 / Math.Tanh(ps[0].V) }; ;
+                    return new Value(Math.Tanh(ps[0].ToDouble()));
                 case "arccoth":
-                    return new numbers.value() { V = 1 / Math.Atanh(ps[0].V) };
+                    return new Value(Math.Atanh(ps[0].ToDouble()));
                 case "sqrt":
-                    return new numbers.value() { V = Math.Sqrt(ps[0].V) };
+                    return new Value(Math.Sqrt(ps[0].ToDouble()));
                 case "floor":
-                    return new numbers.value() { V = Math.Floor(ps[0].V) };
+                    return new Value(Math.Floor(ps[0].ToDouble()));
                 case "ceiling":
-                    return new numbers.value() { V = Math.Ceiling(ps[0].V) };
+                    return new Value(Math.Ceiling(ps[0].ToDouble()));
                 case "to_ascii":
-                    return new numbers.value() { V = ps[0].C };
+                    return new Value(ps[0].ToDouble()); // TODO: Verify
                 case "to_character":
-                    return new numbers.value() { Kind = numbers.Value_Kind.Character_Kind, C = (char)ps[0].V };
+                    return new Value((char)ps[0].ToDouble());
                 case "length_of":
-                    if (ps[0].Kind == numbers.Value_Kind.String_Kind)
+                    if (ps[0].o is string)
                     {
-                        return new numbers.value() { Kind = numbers.Value_Kind.Number_Kind, V = ps[0].S.Length };
+                        return new Value((ps[0].o as string).Length);
                     }
-                    return ((Variable)ps[0].Object).values[0].value;
+                    return ((Variable)ps[0].o).values[0].value;
                 case "abs":
-                    return new numbers.value() { V = Math.Abs(ps[0].V) };
+                    return new Value(Math.Abs(ps[0].ToDouble()));
                 case "load_bitmap":
                     Proc_Call.checkOpenGraph();
-                    string f = ps[0].S;
+                    string f = ps[0].ToString();
                     return GraphDialogViewModel.LoadBitmap(f);
                 case "get_pixel":
                     Proc_Call.checkOpenGraph();
@@ -2509,7 +2510,7 @@ namespace parse_tree
                     return GraphDialogViewModel.GetClosestColor(r, g, b);
 
             }
-            //return new numbers.value() { V = 333 };
+            //return new Value() { V = 333 };
             throw new NotImplementedException();
         }
 
@@ -2717,7 +2718,7 @@ namespace parse_tree
     {
         public Parameter_List? parameters;
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             if(parameters == null)
             {
                 return Plugins.Invoke_Function(l.Get_Text().Substring(l.Get_Text().IndexOf(":=") + 2).Trim(), parameters);
@@ -2766,7 +2767,7 @@ namespace parse_tree
             }
         }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             return left.Execute(l);
         }
 
@@ -2789,9 +2790,9 @@ namespace parse_tree
             this.right = right;
         }
 
-        public override numbers.value Execute(Lexer l){
-            numbers.value first = left.Execute(l);
-            numbers.value second = right.Execute(l);
+        public override Value Execute(Lexer l){
+            Value first = left.Execute(l);
+            Value second = right.Execute(l);
             return numbers.Numbers.exponValues(first, second);
 
         }
@@ -2841,7 +2842,7 @@ namespace parse_tree
             }
         }
 
-        public override numbers.value Execute(Lexer l){
+        public override Value Execute(Lexer l){
             return left.Execute(l);
         }
 
@@ -2864,9 +2865,9 @@ namespace parse_tree
             this.right = right;
         }
 
-        public override numbers.value Execute(Lexer l){
-            numbers.value first = left.Execute(l);
-            numbers.value second = right.Execute(l);
+        public override Value Execute(Lexer l){
+            Value first = left.Execute(l);
+            Value second = right.Execute(l);
             return numbers.Numbers.addValues(first, second);
         }
 
@@ -2887,9 +2888,9 @@ namespace parse_tree
         {
         }
 
-        public override numbers.value Execute(Lexer l){
-            numbers.value first = left.Execute(l);
-            numbers.value second = right.Execute(l);
+        public override Value Execute(Lexer l){
+            Value first = left.Execute(l);
+            Value second = right.Execute(l);
             return numbers.Numbers.divValues(first, second);
         }
 
@@ -2921,9 +2922,9 @@ namespace parse_tree
         public Mult_Add(Value_Parseable left, Add right) : base(left,right)
         {
         }
-        public override numbers.value Execute(Lexer l){
-            numbers.value first = left.Execute(l);
-            numbers.value second = right.Execute(l);
+        public override Value Execute(Lexer l){
+            Value first = left.Execute(l);
+            Value second = right.Execute(l);
             return numbers.Numbers.multValues(first, second);
         }
 
@@ -2955,9 +2956,9 @@ namespace parse_tree
         {
         }
 
-        public override numbers.value Execute(Lexer l){
-            numbers.value first = left.Execute(l);
-            numbers.value second = right.Execute(l);
+        public override Value Execute(Lexer l){
+            Value first = left.Execute(l);
+            Value second = right.Execute(l);
             return numbers.Numbers.modValues(first, second);
         }
 
@@ -2989,9 +2990,9 @@ namespace parse_tree
         {
         }
 
-        public override numbers.value Execute(Lexer l){
-            numbers.value first = left.Execute(l);
-            numbers.value second = right.Execute(l);
+        public override Value Execute(Lexer l){
+            Value first = left.Execute(l);
+            Value second = right.Execute(l);
             return numbers.Numbers.remValues(first, second);
         }
 
@@ -3029,7 +3030,7 @@ namespace parse_tree
 
         public override bool Execute(Lexer l)
         {
-            //Variable v = new Variable(left.Execute(l).V + "", new numbers.value(){S=right.Execute(l).V + "", Kind=numbers.Value_Kind.String_Kind});
+            //Variable v = new Variable(left.Execute(l).V + "", new Value(){S=right.Execute(l).V + "", Kind=numbers.Value_Kind.String_Kind});
             switch(kind){
                 case Token_Type.Equal:
                     return left.Execute(l) == right.Execute(l);
@@ -3157,25 +3158,25 @@ namespace parse_tree
         public override bool Execute(Lexer l){
 
             Runtime.processing_parameter_list = true;
-            numbers.value ps = parameter.Execute(l);
+            Value ps = parameter.Execute(l);
             Runtime.processing_parameter_list = false;
             switch (kind)
             {
                 case Token_Type.Key_Down:
                     Proc_Call.checkOpenGraph();
-                    Avalonia.Input.Key k = (Avalonia.Input.Key)ps.S[0] - 53;
+                    Avalonia.Input.Key k = (Avalonia.Input.Key)ps.ToString()[0] - 53;
                     return GraphDialogViewModel.KeyDown(k);
                 case Token_Type.Mouse_Button_Down:
                     Proc_Call.checkOpenGraph();
-                    Avalonia.Input.MouseButton b = (Avalonia.Input.MouseButton)ps.V - 85;
+                    Avalonia.Input.MouseButton b = (Avalonia.Input.MouseButton)ps.ToDouble() - 85;
                     return GraphDialogViewModel.MouseButtonDown(b);
                 case Token_Type.Mouse_Button_Pressed:
                     Proc_Call.checkOpenGraph();
-                    Avalonia.Input.MouseButton b2 = (Avalonia.Input.MouseButton)ps.V - 85;
+                    Avalonia.Input.MouseButton b2 = (Avalonia.Input.MouseButton)ps.ToDouble() - 85;
                     return GraphDialogViewModel.MouseButtonPressed(b2);
                 case Token_Type.Mouse_Button_Released:
                     Proc_Call.checkOpenGraph();
-                    Avalonia.Input.MouseButton b3 = (Avalonia.Input.MouseButton)ps.V - 85;
+                    Avalonia.Input.MouseButton b3 = (Avalonia.Input.MouseButton)ps.ToDouble() - 85;
                     return GraphDialogViewModel.MouseButtonReleased(b3);
             }
 
@@ -3250,7 +3251,7 @@ namespace parse_tree
         public override bool Execute(Lexer l){
 
             string boolPlug = l.Get_Text(id.start, id.finish);
-            numbers.value ans = Plugins.Invoke_Function(boolPlug, parameters);
+            Value ans = Plugins.Invoke_Function(boolPlug, parameters);
             return numbers.Numbers.long_float_of(ans) > 0.5;
 
         }
@@ -3434,7 +3435,7 @@ namespace parse_tree
             this.lhs = l;
             this.lsuffix = s;
         }
-        public void Execute(Lexer l, numbers.value v){
+        public void Execute(Lexer l, Value v){
             lhs.Execute(l, v);
         }
 
@@ -3469,7 +3470,7 @@ namespace parse_tree
     {
         public bool new_line;
 
-        public abstract numbers.value Execute(Lexer l);
+        public abstract Value Execute(Lexer l);
         
     }
     public class Expr_Output : Output
@@ -3481,8 +3482,8 @@ namespace parse_tree
             this.new_line = new_line;
         }
 
-        public override numbers.value Execute(Lexer l){
-            numbers.value v =  expr.Execute(l);
+        public override Value Execute(Lexer l){
+            Value v =  expr.Execute(l);
             return v;
         }
 
@@ -3499,7 +3500,7 @@ namespace parse_tree
             expr.compile_pass1(gen);
         }
 
-        public void Assign_To(Lexer l, numbers.value val)
+        public void Assign_To(Lexer l, Value val)
         {
             if (expr.GetType() == typeof(Add_Expression) || expr.GetType() == typeof(Minus_Expression))
             {
@@ -3531,8 +3532,8 @@ namespace parse_tree
             {
                 Array_Ref_2D_Rhs r = (Array_Ref_2D_Rhs)tempRHS;
                 string str = Component.the_lexer.Get_Text(r.id.start, r.id.finish);
-                numbers.value v = r.reference.Execute(l);
-                numbers.value v2 = r.reference2.Execute(l);
+                Value v = r.reference.Execute(l);
+                Value v2 = r.reference2.Execute(l);
                 if (!numbers.Numbers.is_integer(v))
                 {
                     throw new Exception("Index must be an integer!");
@@ -3548,7 +3549,7 @@ namespace parse_tree
             {
                 Array_Ref_Rhs r = (Array_Ref_Rhs)tempRHS;
                 string str = Component.the_lexer.Get_Text(r.id.start, r.id.finish);
-                numbers.value v = r.reference.Execute(l);
+                Value v = r.reference.Execute(l);
                 if (!numbers.Numbers.is_integer(v))
                 {
                     throw new Exception("Index must be an integer!");
@@ -3708,8 +3709,8 @@ namespace parse_tree
             }
         }
 
-        public numbers.value[] Execute(Lexer l){
-            numbers.value[] ans = new numbers.value[getLen()];
+        public Value[] Execute(Lexer l){
+            Value[] ans = new Value[getLen()];
             Output tempParam = parameter;
             Parameter_List tempNext = next;
 

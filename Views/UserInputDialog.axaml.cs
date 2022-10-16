@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using raptor;
+using numbers;
 
 namespace RAPTOR_Avalonia_MVVM.Views
 {
@@ -10,7 +11,7 @@ namespace RAPTOR_Avalonia_MVVM.Views
         public UserInputDialog(){
 
         }
-        public UserInputDialog(Parallelogram p, numbers.value v = null, bool compileMode = false)
+        public UserInputDialog(Parallelogram p, Value v = null, bool compileMode = false)
         {
             InitializeComponent();
 #if DEBUG
